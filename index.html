@@ -3,6 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Chart contest</title>
+
+    <style>
+        html, body, #root {
+            height: 100vh;
+            margin: 0;
+        }
+    </style>
 </head>
 <body>
     <div id="root"></div>
@@ -14,7 +21,7 @@
     -->
     <script src="src/colors.js"></script>
 
-    <!-- Themes of the charts
+    <!-- Themes of the charts.
     {
         themeDay: { [elementType: string]: string },
         themeNight: { [elementType: string]: string },
@@ -22,12 +29,13 @@
     -->
     <script src="src/themes.js"></script>
 
-    <!-- Get data of JSON file util. (Data of charts)
+    <!-- Utils.
     {
-        getJson(pathToJsonFile: string): Promise<JSON>,
+        getJson(pathToJsonFile: string): Promise<JSON>, // Get data of JSON file. (Data of charts)
+        createElement(tag: string, props: object, children: any): HTMLElement, // Create a HTML element.
     }
     -->
-    <script src="src/getJson.js"></script>
+    <script src="src/utils.js"></script>
 
 
     <script src="src/index.js"></script>
