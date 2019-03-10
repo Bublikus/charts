@@ -1,2 +1,6 @@
 getJson('chart_data.json')
-  .then(console.log)
+  .then(start);
+
+function start(chartsData) {
+
+}

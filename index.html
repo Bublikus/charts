@@ -7,7 +7,29 @@
 <body>
     <div id="root"></div>
 
+    <!-- Colors constants.
+    {
+        colors: { [colorName: string]: string },
+    }
+    -->
+    <script src="src/colors.js"></script>
+
+    <!-- Themes of the charts
+    {
+        themeDay: { [elementType: string]: string },
+        themeNight: { [elementType: string]: string },
+    }
+    -->
+    <script src="src/themes.js"></script>
+
+    <!-- Get data of JSON file util. (Data of charts)
+    {
+        getJson(pathToJsonFile: string): Promise<JSON>,
+    }
+    -->
     <script src="src/getJson.js"></script>
+
+
     <script src="src/index.js"></script>
 </body>
 </html>

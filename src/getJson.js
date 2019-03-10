@@ -1,14 +1,14 @@
 /**
  * Get data of JSON file.
  *
- * @param pathToJson: string
+ * @param pathToJsonFile: string
  * @return {Promise<JSON>}
  */
-function getJson(pathToJson) {
+function getJson(pathToJsonFile) {
   return new Promise(function(resolve, reject) {
     var request = new XMLHttpRequest();
 
-    request.open('GET', pathToJson);
+    request.open('GET', pathToJsonFile);
     request.responseType = 'json';
     request.send();
 
