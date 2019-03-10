@@ -5,23 +5,46 @@
     <title>Chart contest</title>
 
     <style>
-        html, body, #root {
+        html, body {
             height: 100vh;
             margin: 0;
+        }
+        #root {
+            height: 90vh;
+        }
+        #chart {
+            height: 75vh;
+        }
+        .switch-button-container {
+            text-align: center;
+        }
+        button {
+            border: none;
+            font-size: 16px;
+            padding: 0;
+            color: blue;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <div id="root"></div>
+    <div id="root">
+        <div id="chart"></div>
+    </div>
+    <div class="switch-button-container">
+        <button type="button" id="switch-button">
+            Switch to Night Mode
+        </button>
+    </div>
 
-    <!-- Colors constants.
+    <!-- Colors constants
     {
         colors: { [colorName: string]: string },
     }
     -->
     <script src="src/colors.js"></script>
 
-    <!-- Themes of the charts.
+    <!-- Themes of the charts
     {
         themeDay: { [elementType: string]: string },
         themeNight: { [elementType: string]: string },
@@ -29,7 +52,7 @@
     -->
     <script src="src/themes.js"></script>
 
-    <!-- Utils.
+    <!-- Utils
     {
         getJson(pathToJsonFile: string): Promise<JSON>, // Get data of JSON file. (Data of charts)
         createElement(tag: string, props: object, children: any): HTMLElement, // Create a HTML element.
@@ -37,7 +60,7 @@
     -->
     <script src="src/utils.js"></script>
 
-
+    <!-- Index -->
     <script src="src/index.js"></script>
 </body>
 </html>
