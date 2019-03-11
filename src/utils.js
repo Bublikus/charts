@@ -74,3 +74,74 @@ function createElement(tag, props, children) {
 
   return element;
 }
+
+/**
+ * @description Dispatch and subscribe on app store.
+ *
+ * @object eventAggregator
+ *
+ * @return {{
+ *   dispatch(eventName: string, eventArgs: any): void,
+ *   subscribe(eventName: string, handler: Function): void,
+ * }}
+ */
+function Event(name) {
+  this._handlers = [];
+  this.name = name;
+}
+
+// Function of adding handlers.
+Event.prototype.addHandler = function(handler) {
+  this._handlers.push(handler);
+};
+
+// Function of removing handlers
+Event.prototype.removeHandler = function(handler) {
+  for (var i = 0; i < handlers.length; i++) {
+    if (this._handlers[i] === handler) {
+      this._handlers.splice(i, 1);
+      break;
+    }
+  }
+};
+
+// Call all handlers.
+Event.prototype.fire = function(eventArgs) {
+  this._handlers.forEach(function(h) {
+    h(eventArgs);
+  });
+};
+
+var eventAggregator = (function() {
+  var events = [];
+
+  function getEvent(eventName) {
+    return events.filter(function(event) {
+      return event.name === eventName;
+    })[0];
+  }
+
+  return {
+    dispatch: function(eventName, eventArgs) {
+      var event = getEvent(eventName);
+
+      if (!event) {
+        event = new Event(eventName);
+        events.push(event);
+      }
+      event.fire(eventArgs);
+    },
+
+    subscribe: function(eventName, handler) {
+      var event = getEvent(eventName);
+
+      if (!event) {
+        event = new Event(eventName);
+        events.push(event);
+      }
+      event.addHandler(handler);
+    }
+  };
+})();
+
+

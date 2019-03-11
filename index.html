@@ -5,11 +5,11 @@
     <title>Chart contest</title>
 
     <style>
-        html, body {
+        html, body, #root {
             height: 100vh;
             margin: 0;
         }
-        #root {
+        .main-container {
             height: 90vh;
         }
         #chart {
@@ -28,14 +28,7 @@
     </style>
 </head>
 <body>
-    <div id="root">
-        <div id="chart"></div>
-    </div>
-    <div class="switch-button-container">
-        <button type="button" id="switch-button">
-            Switch to Night Mode
-        </button>
-    </div>
+    <div id="root"></div>
 
     <!-- Colors constants
     {
@@ -52,13 +45,28 @@
     -->
     <script src="src/themes.js"></script>
 
+    <!-- Store of the app
+    {
+        store: { [storeKey: string]: any },
+    }
+    -->
+    <script src="src/store.js"></script>
+
     <!-- Utils
     {
-        getJson(pathToJsonFile: string): Promise<JSON>, // Get data of JSON file. (Data of charts)
-        createElement(tag: string, props: object, children: any): HTMLElement, // Create a HTML element.
+        getJson(pathToJsonFile: string): Promise<JSON>,                         // Get data of JSON file. (Data of charts)
+        createElement(tag: string, props: object, children: any): HTMLElement,  // Create a HTML element.
     }
     -->
     <script src="src/utils.js"></script>
+
+    <!-- Make containers for charts and switch button
+    {
+        makeContainers(): void,                         // Create HTML containers.
+        onSwitchTheme(theme?: 'day' | 'night'): void,    // Switch themes and change button's text.
+    }
+    -->
+    <script src="src/makeContainers.js"></script>
 
     <!-- Index -->
     <script src="src/index.js"></script>
