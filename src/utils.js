@@ -61,7 +61,7 @@ function createElement(tag, props, children) {
         return appendRecursivelyArrayOfChildren(child, container)
       }
 
-      var childrenElement = child instanceof HTMLElement
+      var childrenElement = isNode(child)
         ? child
         : document.createTextNode(child && child.toString())
 
@@ -144,4 +144,37 @@ var eventAggregator = (function() {
   };
 })();
 
+/**
+ * @description Returns true if it is a DOM element
+ *
+ * @function isElement
+ *
+ * @param obj: any
+ *
+ * @return boolean
+ */
+function isElement(obj) {
+  return (
+    typeof HTMLElement === "object"
+      ? obj instanceof HTMLElement
+      : obj && typeof obj === "object" && obj !== null && obj.nodeType === 1 && typeof obj.nodeName==="string"
+  );
+}
+
+/**
+ * @description Returns true if it is a DOM node
+ *
+ * @function isNode
+ *
+ * @param obj: any
+ *
+ * @return boolean
+ */
+function isNode(obj){
+  return (
+    typeof Node === "object"
+      ? obj instanceof Node
+      : obj && typeof obj === "object" && typeof obj.nodeType === "number" && typeof obj.nodeName==="string"
+  );
+}
 
