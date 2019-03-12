@@ -14,6 +14,12 @@ function start(chartsData) {
 
   var config = transformChartDataToConfig(chartsData);
 
+  // Redraw on switch theme.
+  eventAggregator.subscribe('switchTheme', function () {
+    config = transformChartDataToConfig(chartsData);
+    doChart(config);
+  });
+
   doChart(config);
 }
 
@@ -34,13 +40,21 @@ function start(chartsData) {
  *  }}
  */
 function transformChartDataToConfig(chartsData) {
+  var theme = store.theme.styles;
 
   return {
     chart: {
       renderTo: document.getElementById('chart'),
     },
     title: {
-      text: 'Followers'
+      text: 'Followers',
+      align: 'left',
+      verticalAlign: 'bottom',
+      height: 50,
+      x: 20,
+      style: {
+        color: theme.mainFont,
+      },
     },
     xAxis: [{
 

@@ -1,3 +1,6 @@
-const store = {
-  theme: 'day',
+var store = {
+  theme: {
+    themeKey: 'day',
+    styles: themeDay,
+  },
 };

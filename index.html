@@ -24,11 +24,19 @@
             padding: 0;
             color: blue;
             cursor: pointer;
+            background-color: transparent;
         }
     </style>
 </head>
 <body>
     <div id="root"></div>
+
+    <!-- Config
+    {
+        appConfig: { [configKey: string]: any },
+    }
+    -->
+    <script src="src/config.js"></script>
 
     <!-- Colors constants
     {
@@ -54,8 +62,15 @@
 
     <!-- Utils
     {
-        getJson(pathToJsonFile: string): Promise<JSON>,                         // Get data of JSON file. (Data of charts)
-        createElement(tag: string, props: object, children: any): HTMLElement,  // Create a HTML element.
+        getJson(pathToJsonFile: string): Promise<JSON>,                             // Get data of JSON file. (Data of charts)
+        createElement(tag: string, props: object, children: any): HTMLElement,      // Create a HTML element.
+        createSVGElement(tag: string, props: object, children: any): SVGElement,    // Create a SVG element.
+        eventAggregator: {                                                          // Dispatch and subscribe on app store.
+            dispatch(eventName: string, eventArgs: any): void,
+            subscribe(eventName: string, handler: Function): void,
+        },
+        isElement(obj: any): boolean,                                               // Returns true if it is a DOM element.
+        isNode(obj: any): boolean,                                                  // Returns true if it is a NODE.
     }
     -->
     <script src="src/utils.js"></script>

@@ -9,6 +9,10 @@ function makeContainers() {
   // Get root container
   var rootContainer = document.getElementById('root');
 
+  eventAggregator.subscribe('switchTheme', function (theme) {
+    rootContainer.style.backgroundColor = theme.styles.mainBackground;
+  });
+
   var chartContainer = createElement(
     'div',
     { id: 'chart' },
@@ -28,25 +32,23 @@ function makeContainers() {
         onSwitchTheme();
       },
     },
-    store.theme === 'day' ? 'Switch to Night Mode' : 'Switch to Day Mode',
-  )
+    store.theme.themeKey === 'day' ? 'Switch to Night Mode' : 'Switch to Day Mode',
+  );
   var switchButtonContainer = createElement(
     'div',
     { className: 'switch-button-container' },
     switchButton,
-  )
+  );
 
   // Subscribe on theme change.
   eventAggregator.subscribe('switchTheme', function (theme) {
-    switchButton.innerText = theme === 'day'
+    switchButton.innerText = theme.themeKey === 'day'
       ? 'Switch to Night Mode'
       : 'Switch to Day Mode';
-
-    store.theme = store.theme === 'day' ? 'night' : 'day';
   });
 
-  rootContainer.appendChild(mainContainer)
-  rootContainer.appendChild(switchButtonContainer)
+  rootContainer.appendChild(mainContainer);
+  rootContainer.appendChild(switchButtonContainer);
 }
 
 /**
@@ -54,10 +56,20 @@ function makeContainers() {
  *
  * @function onSwitchTheme
  *
- * @param theme?: 'day' | 'night'
+ * @param themeKey?: 'day' | 'night'
  *
  * @return void
  */
-function onSwitchTheme(theme) {
-  eventAggregator.dispatch('switchTheme', theme || (store.theme === 'day' ? 'night' : 'day'));
+function onSwitchTheme(themeKey) {
+  var newThemeKey = themeKey || (store.theme.themeKey === 'day' ? 'night' : 'day');
+  var newThemeStyles = newThemeKey === 'day' ? themeDay : themeNight;
+
+  var newTheme = {
+    themeKey: newThemeKey,
+    styles: newThemeStyles,
+  };
+
+  store.theme = newTheme;
+
+  eventAggregator.dispatch('switchTheme', newTheme);
 }
