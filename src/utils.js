@@ -61,11 +61,13 @@ function createElement(tag, props, children) {
         return appendRecursivelyArrayOfChildren(child, container);
       }
 
-      var childrenElement = isNode(child)
-        ? child
-        : document.createTextNode(child && child.toString());
+      var childrenElement = child !== undefined && child !== null && (
+        isNode(child)
+          ? child
+          : document.createTextNode(child && child.toString())
+      );
 
-      container.appendChild(childrenElement);
+      childrenElement && container.appendChild(childrenElement);
     });
   }
 
@@ -101,11 +103,13 @@ function createSVGElement(tag, props, children) {
         return appendRecursivelyArrayOfChildren(child, container);
       }
 
-      var childrenElement = isNode(child)
-        ? child
-        : document.createTextNode(child && child.toString());
+      var childrenElement = child !== undefined && child !== null && (
+        isNode(child)
+          ? child
+          : document.createTextNode(child && child.toString())
+      );
 
-      container.appendChild(childrenElement);
+      childrenElement && container.appendChild(childrenElement);
     });
   }
 

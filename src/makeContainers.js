@@ -13,14 +13,19 @@ function makeContainers() {
     rootContainer.style.backgroundColor = theme.styles.mainBackground;
   });
 
-  var chartContainer = createElement(
+  var mainChartContainer = createElement(
     'div',
-    { id: 'chart' },
+    { id: 'mainChart' },
+  );
+  var subChartContainer = createElement(
+    'div',
+    { id: 'subChart' },
   );
   var mainContainer = createElement(
     'div',
     { className: 'main-container' },
-    chartContainer,
+    mainChartContainer,
+    subChartContainer
   );
 
   var switchButton = createElement(

@@ -31,12 +31,66 @@ function start(chartsData) {
  * @param chartsData
  *
  * @return {{
- *    yAxis: {}[],
- *    xAxis: {}[],
+ *    chart: {{
+ *      renderTo: string | HTMLElement,
+ *      width: number,
+ *      height: number,
+ *    }}
+ *    title: {{
+ *      text: string,
+ *      align: 'left' | 'center' | 'right',
+ *      verticalAlign: 'top' | 'center' | 'bottom',
+ *      width: number,
+ *      height: number,
+ *      x: number,
+ *      y: number,
+ *      backgroundColor: string,
+ *      style: {
+ *        color: string,
+ *        fontSize: number,
+ *        fontWeight: number | string,
+ *      },
+ *    }},
+ *    xAxis: {
+ *      line: {
+ *        x: number,
+ *        y: number,
+ *        width: number,
+ *        height: number,
+ *        color: string,
+ *      },
+ *      labels: {
+ *        x: number,
+ *        y: number,
+ *        color: string,
+ *        fontSize: number,
+ *        fontWeight: number | string,
+ *      }
+ *    },
+ *    yAxis: {
+ *      line: {
+ *        x: number,
+ *        y: number,
+ *        width: number,
+ *        height: number,
+ *        color: string,
+ *      },
+ *      labels: {
+ *        x: number,
+ *        y: number,
+ *        color: string,
+ *        fontSize: number,
+ *        fontWeight: number | string,
+ *      }
+ *    },
  *    legend: {},
- *    series: {}[],
- *    title: {text: string},
- *    chart: {renderTo: HTMLElement}
+ *    series: {
+ *      type: 'line',
+ *      data: {
+ *        x: number,
+ *        y: number,
+ *      }[],
+ *    }[],
  *  }}
  */
 function transformChartDataToConfig(chartsData) {
@@ -44,7 +98,7 @@ function transformChartDataToConfig(chartsData) {
 
   return {
     chart: {
-      renderTo: document.getElementById('chart'),
+      renderTo: document.getElementById('mainChart'),
     },
     title: {
       text: 'Followers',
@@ -56,17 +110,47 @@ function transformChartDataToConfig(chartsData) {
         color: theme.mainFont,
       },
     },
-    xAxis: [{
-
-    }],
-    yAxis: [{
-
-    }],
+    xAxis: {
+      labels: {
+        color: theme.xLabels,
+        fontSize: 14,
+      }
+    },
+    yAxis: {
+      line: {
+        x: 15,
+        color: 'transparent',
+      },
+      labels: {
+        color: theme.yLabels,
+        fontSize: 14,
+      }
+    },
     legend: {
 
     },
     series: [{
-
+      type: 'line',
+      data: [
+        {
+          y: 10,
+        },
+        {
+          y: 80,
+        },
+        {
+          y: 23,
+        },
+        {
+          y: 125,
+        },
+        {
+          y: 3,
+        },
+        {
+          y: 45,
+        }
+      ]
     }],
   };
 }

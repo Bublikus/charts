@@ -52,7 +52,8 @@ function Chart(config) {
   this.config = config;
   this.container = this.config.chart.renderTo;
 
-  this.title = new ChartTitle(this.config.title, config);
+  this.title = new ChartTitle(this.config.title, this.config);
+  this.yAxis = new ChartYAxis(this.config.yAxis, this.config);
 
   this.svg = createSVGElement(
     'svg',
@@ -62,7 +63,8 @@ function Chart(config) {
       height: this.config.chart.height,
       viewBox: '0 0 ' + this.config.chart.width + ' ' + this.config.chart.height,
     },
-    this.title.containers.titleGroup,
+    this.config.title && this.title.containers.titleGroup,
+    this.config.yAxis && this.yAxis.containers.yAxisGroup,
   );
 
   this.container.appendChild(this.svg);
@@ -91,8 +93,12 @@ function Chart(config) {
  * @param config: object
  */
 function ChartTitle(title, config) {
+  if (!title) {
+    return;
+  }
+
   this.config = config;
-  this.title = title || {};
+  this.title = title;
 
   var alignH =
     this.title.align === 'left' ? 'start'
@@ -156,6 +162,117 @@ function ChartTitle(title, config) {
     null,
     this.containers.titleRect,
     this.containers.titleText,
+  );
+}
+
+/**
+ * @description Make a chart yAxis.
+ *
+ * @constructor ChartYAxis
+ *
+ * @param yAxis: {{
+ *   line: {
+ *     x: number,
+ *     y: number,
+ *     width: number,
+ *     color: string,
+ *   },
+ *   labels: {
+ *     x: number,
+ *     y: number,
+ *     color: string,
+ *     fontSize: number,
+ *     fontWeight: number | string,
+ *   },
+ * }}
+ * @param config: object
+ */
+function ChartYAxis(yAxis, config) {
+  if (!yAxis || !config.series) {
+    return;
+  }
+
+
+  this.config = config;
+  this.config.series = config.series;
+  this.yAxis = yAxis;
+  this.yAxis.line = yAxis.line || {};
+  this.yAxis.labels = yAxis.labels || {};
+
+  this.height = this.yAxis.line.height || this.config.chart.height - this.config.title.height;
+
+  this.containers = {};
+
+  var lineCoords = {
+    x1: this.yAxis.line.x || 0,
+    y1: (this.yAxis.line.y || 0) + (this.config.title.height || 0),
+    x2: this.yAxis.line.x || 0,
+    y2: this.yAxis.line.height || (this.config.chart.height || 0) + (this.yAxis.line.y || 0),
+  };
+
+  if (!Array.isArray(this.config.series)) {
+    throw new Error('"Series" must be an array');
+  }
+
+  var minY = Math.min.apply(null,
+    this.config.series.map(function (seriesItem) {
+      return Math.min.apply(null,
+        ((seriesItem || {}).data || []).map(function (dataItem) {
+          return (dataItem || {}).y || 0;
+        })
+      );
+    })
+  );
+
+  var maxY = Math.max.apply(null,
+    this.config.series.map(function (seriesItem) {
+      return Math.max.apply(null,
+        ((seriesItem || {}).data || []).map(function (dataItem) {
+          return (dataItem || {}).y || 0;
+        })
+      );
+    })
+  );
+
+  var stepY = (maxY - Math.min(minY, 0)) / 5;
+
+  var labelsData = new Array(6).fill(0).map(function (n, i) {
+    return +(Math.min(minY, 0) + (i * stepY)).toFixed(2);
+  });
+
+  this.containers.yAxisLabels = labelsData.map(function (labelText, i) {
+    var tspan = createSVGElement(
+      'tspan',
+      null,
+      labelText,
+    );
+    var text = createSVGElement(
+      'text',
+      {
+        style: stylesObjectToString(this.yAxis.labels),
+        fill: this.yAxis.labels.color,
+        x: (this.yAxis.line.x || 0) + (this.yAxis.labels.x || 0),
+        y: (this.yAxis.line.y || 0) + (this.yAxis.labels.y || 0) + (lineCoords.y2 - i * ((lineCoords.y2 - lineCoords.y1) / labelsData.length)),
+      },
+      tspan
+    );
+    return text;
+  }.bind(this));
+
+  this.containers.yAxisLine = createSVGElement(
+    'path',
+    {
+      d: 'M ' + lineCoords.x1 + ',' + lineCoords.y1 + ' v ' + (lineCoords.y2 - lineCoords.y1),
+      stroke: this.yAxis.line.color || store.theme.styles.yLines,
+      'stroke-width': (this.yAxis.line.width || 1) + 'px',
+    },
+  );
+
+  this.containers.yAxisGroup = createSVGElement(
+    'g',
+    null,
+    this.containers.yAxisLine,
+    this.containers.yAxisLabels
   );
 }
 
