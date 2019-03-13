@@ -86,6 +86,24 @@
     -->
     <script src="src/makeContainers.js"></script>
 
+    <!-- Chart default config
+    {
+        chartDefaults: object
+    }
+    -->
+    <script src="src/chartDefaults.js"></script>
+
+    <!-- Chart utils
+    {
+        getChartContainer(container: any): HTMLElement  // Get chart container for "renderTo".
+        getMinMaxOfSeriesData(                          // Gets min and max values from {prop} in "data" of "series".
+            series: { data: { [prop]: number }[] }[],
+            prop: string,
+        ): { min: number, max: number }
+    }
+    -->
+    <script src="src/chartUtils.js"></script>
+
     <!-- Chart
     {
         doChart(config: object): object

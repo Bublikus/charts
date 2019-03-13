@@ -65,6 +65,8 @@ function start(chartsData) {
  *        color: string,
  *        fontSize: number,
  *        fontWeight: number | string,
+ *        align: 'left' | 'center' | 'right',
+ *        verticalAlign: 'top' | 'center' | 'bottom',
  *      }
  *    },
  *    yAxis: {
@@ -81,6 +83,8 @@ function start(chartsData) {
  *        color: string,
  *        fontSize: number,
  *        fontWeight: number | string,
+ *        align: 'left' | 'center' | 'right',
+ *        verticalAlign: 'top' | 'center' | 'bottom',
  *      }
  *    },
  *    legend: {},
@@ -111,6 +115,10 @@ function transformChartDataToConfig(chartsData) {
       },
     },
     xAxis: {
+      line: {
+        color: theme.xLines,
+        width: -15,
+      },
       labels: {
         color: theme.xLabels,
         fontSize: 14,
@@ -124,6 +132,7 @@ function transformChartDataToConfig(chartsData) {
       labels: {
         color: theme.yLabels,
         fontSize: 14,
+        height: -5,
       }
     },
     legend: {
@@ -142,7 +151,7 @@ function transformChartDataToConfig(chartsData) {
           y: 23,
         },
         {
-          y: 125,
+          y: 127,
         },
         {
           y: 3,

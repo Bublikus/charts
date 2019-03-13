@@ -9,7 +9,7 @@
  */
 function doChart(config) {
   config = config || {};
-  config.chart = config.chart || {};
+  config.chart = config.chart || chartDefaults.chart;
   config.chart.renderTo = getChartContainer(config.chart.renderTo);
   config.chart.width = config.chart.width || config.chart.renderTo.offsetWidth;
   config.chart.height = config.chart.height || config.chart.renderTo.offsetHeight;
@@ -54,6 +54,7 @@ function Chart(config) {
 
   this.title = new ChartTitle(this.config.title, this.config);
   this.yAxis = new ChartYAxis(this.config.yAxis, this.config);
+  this.xAxis = new ChartXAxis(this.config.xAxis, this.config);
 
   this.svg = createSVGElement(
     'svg',
@@ -65,6 +66,7 @@ function Chart(config) {
     },
     this.config.title && this.title.containers.titleGroup,
     this.config.yAxis && this.yAxis.containers.yAxisGroup,
+    this.config.xAxis && this.xAxis.containers.xAxisGroup,
   );
 
   this.container.appendChild(this.svg);
@@ -100,17 +102,10 @@ function ChartTitle(title, config) {
   this.config = config;
   this.title = title;
 
-  var alignH =
-    this.title.align === 'left' ? 'start'
-      : this.title.align === 'center' ? 'middle'
-      : this.title.align === 'right' ? 'end'
-        : this.title.align || 'start';
-  var alignV =
-    this.title.verticalAlign === 'top' ? 'hanging'
-      : this.title.verticalAlign === 'center' ? 'middle'
-      : this.title.verticalAlign === 'bottom' ? 'baseline'
-        : this.title.verticalAlign || 'hanging';
-  var style = Object.assign({}, { fontSize: 16, fontWeight: 'bold' }, this.title.style);
+  var alignH = getTextAlign(this.title.align, chartDefaults.title.align);
+  var alignV = getTextVerticalAlign(this.title.verticalAlign, chartDefaults.title.verticalAlign);
+
+  var style = Object.assign({}, chartDefaults.title.style, this.title.style);
 
   this.width = this.title.width || this.config.chart.width;
   this.height = this.title.height || style.fontSize * appConfig.defaultLineHeight;
@@ -183,6 +178,8 @@ function ChartTitle(title, config) {
  *     color: string,
  *     fontSize: number,
  *     fontWeight: number | string,
+ *     align: 'start' | 'middle' | 'end',
+ *     verticalAlign: 'hanging' | 'middle' | 'baseline',
  *   },
  * }}
  * @param config: object
@@ -192,14 +189,13 @@ function ChartYAxis(yAxis, config) {
     return;
   }
 
-
   this.config = config;
   this.config.series = config.series;
-  this.yAxis = yAxis;
-  this.yAxis.line = yAxis.line || {};
-  this.yAxis.labels = yAxis.labels || {};
-
-  this.height = this.yAxis.line.height || this.config.chart.height - this.config.title.height;
+  this.yAxis = yAxis || {};
+  this.yAxis.line = this.yAxis.line || {};
+  this.yAxis.labels = this.yAxis.labels || {};
+  this.xAxis = this.config.xAxis || {};
+  this.xAxis.line = this.xAxis.line || {};
 
   this.containers = {};
 
@@ -207,37 +203,23 @@ function ChartYAxis(yAxis, config) {
     x1: this.yAxis.line.x || 0,
     y1: (this.yAxis.line.y || 0) + (this.config.title.height || 0),
     x2: this.yAxis.line.x || 0,
-    y2: this.yAxis.line.height || (this.config.chart.height || 0) + (this.yAxis.line.y || 0),
+    y2: this.yAxis.line.height ||
+      (this.config.chart.height || 0) + (this.yAxis.line.y || 0) + ((chartDefaults.xAxis.line.y || 0) + (this.xAxis.line.y || 0)),
   };
+
+  var alignH = getTextAlign(this.yAxis.labels.align, (chartDefaults.yAxis.labels || {}).align);
+  var alignV = getTextVerticalAlign(this.yAxis.labels.verticalAlign, (chartDefaults.yAxis.labels || {}).verticalAlign);
 
   if (!Array.isArray(this.config.series)) {
     throw new Error('"Series" must be an array');
   }
 
-  var minY = Math.min.apply(null,
-    this.config.series.map(function (seriesItem) {
-      return Math.min.apply(null,
-        ((seriesItem || {}).data || []).map(function (dataItem) {
-          return (dataItem || {}).y || 0;
-        })
-      );
-    })
-  );
+  var minYMaxY = getMinMaxOfSeriesData(this.config.series, 'y');
 
-  var maxY = Math.max.apply(null,
-    this.config.series.map(function (seriesItem) {
-      return Math.max.apply(null,
-        ((seriesItem || {}).data || []).map(function (dataItem) {
-          return (dataItem || {}).y || 0;
-        })
-      );
-    })
-  );
-
-  var stepY = (maxY - Math.min(minY, 0)) / 5;
+  var stepY = (minYMaxY.max - Math.min(minYMaxY.min, 0)) / 5;
 
   var labelsData = new Array(6).fill(0).map(function (n, i) {
-    return +(Math.min(minY, 0) + (i * stepY)).toFixed(2);
+    return +(Math.min(minYMaxY.min, 0) + (i * stepY)).toFixed(2);
   });
 
   this.containers.yAxisLabels = labelsData.map(function (labelText, i) {
@@ -251,7 +233,9 @@ function ChartYAxis(yAxis, config) {
       {
         style: stylesObjectToString(this.yAxis.labels),
         fill: this.yAxis.labels.color,
-        x: (this.yAxis.line.x || 0) + (this.yAxis.labels.x || 0),
+        'text-anchor': alignH,
+        'dominant-baseline': alignV,
+        x: (this.yAxis.line.x || 0) + (this.yAxis.labels.x || 0) + (chartDefaults.yAxis.labels.x || 0),
         y: (this.yAxis.line.y || 0) + (this.yAxis.labels.y || 0) + (lineCoords.y2 - i * ((lineCoords.y2 - lineCoords.y1) / labelsData.length)),
       },
       tspan
@@ -277,21 +261,100 @@ function ChartYAxis(yAxis, config) {
 }
 
 /**
- * @description Get chart container.
+ * @description Make a chart xAxis.
  *
- * @param container: any
+ * @constructor ChartXAxis
  *
- * @return {Element}
+ * @param xAxis: {{
+ *   line: {
+ *     x: number,
+ *     y: number,
+ *     width: number,
+ *     color: string,
+ *   },
+ *   labels: {
+ *     x: number,
+ *     y: number,
+ *     color: string,
+ *     fontSize: number,
+ *     fontWeight: number | string,
+ *     align: 'start' | 'middle' | 'end',
+ *     verticalAlign: 'hanging' | 'middle' | 'baseline',
+ *   },
+ * }}
+ * @param config: object
  */
-function getChartContainer(container) {
-  // Try to get chart container.
-  var chartContainer = typeof container === 'string'
-    ? document.querySelector(container)
-    : container;
-
-  if (!isElement(chartContainer)) {
-    throw new Error('"renderTo" property is invalid. Expected string selector or DOM element');
+function ChartXAxis(xAxis, config) {
+  if (!xAxis || !config.series) {
+    return;
   }
 
-  return chartContainer;
+  this.config = config;
+  this.config.series = config.series;
+  this.xAxis = xAxis || {};
+  this.xAxis.line = this.xAxis.line || {};
+  this.xAxis.labels = this.xAxis.labels || {};
+  this.yAxis = this.config.yAxis || {};
+  this.yAxis.line = this.yAxis.line || {};
+
+  this.containers = {};
+
+  var lineCoords = {
+    x1: (this.xAxis.line.x || 0) + (this.config.yAxis.line.x || 0),
+    y1: (this.config.chart.height) + (chartDefaults.xAxis.line.y || 0) + (this.xAxis.line.y || 0),
+    x2: (this.xAxis.line.x || 0) + (this.xAxis.line.width || 0) - (this.config.yAxis.line.x || 0) + this.config.chart.width,
+    y2: (this.config.chart.height) + (chartDefaults.xAxis.line.y || 0) + (this.xAxis.line.y || 0),
+  };
+
+  var alignH = getTextAlign(this.xAxis.labels.align, (chartDefaults.xAxis.labels || {}).align);
+  var alignV = getTextVerticalAlign(this.xAxis.labels.verticalAlign, (chartDefaults.xAxis.labels || {}).verticalAlign);
+
+  if (!Array.isArray(this.config.series)) {
+    throw new Error('"Series" must be an array');
+  }
+
+  var minXMaxX = getMinMaxOfSeriesData(this.config.series, 'x');
+
+  var stepX = (minXMaxX.max - Math.min(minXMaxX.min, 0)) / 5;
+
+  var labelsData = new Array(6).fill(0).map(function (n, i) {
+    return +(Math.min(minXMaxX.min, 0) + (i * stepX)).toFixed(2);
+  });
+
+  this.containers.xAxisLabels = labelsData.map(function (labelText, i) {
+    var tspan = createSVGElement(
+      'tspan',
+      null,
+      labelText,
+    );
+    var text = createSVGElement(
+      'text',
+      {
+        style: stylesObjectToString(this.xAxis.labels),
+        fill: this.xAxis.labels.color,
+        'text-anchor': alignH,
+        'dominant-baseline': alignV,
+        x: (this.xAxis.line.x || 0) + (this.yAxis.line.x || 0) + (this.xAxis.labels.x || 0) + (i * ((lineCoords.x2 - lineCoords.x1) / labelsData.length)),
+        y: (this.config.chart.height) + (this.xAxis.line.y || 0) + (this.xAxis.labels.y || 0) + (chartDefaults.xAxis.labels.y || 0),
+      },
+      tspan
+    );
+    return text;
+  }.bind(this));
+
+  this.containers.xAxisLine = createSVGElement(
+    'path',
+    {
+      d: 'M ' + lineCoords.x1 + ',' + lineCoords.y1 + ' h ' + (lineCoords.x2 - lineCoords.x1),
+      stroke: this.xAxis.line.color || store.theme.styles.xLines,
+      'stroke-width': (this.xAxis.line.width || 1) + 'px',
+    },
+  );
+
+  this.containers.xAxisGroup = createSVGElement(
+    'g',
+    null,
+    this.containers.xAxisLine,
+    this.containers.xAxisLabels
+  );
 }
