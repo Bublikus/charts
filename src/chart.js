@@ -77,7 +77,7 @@ function Chart(config) {
  *
  * @constructor ChartTitle
  *
- * @param title: {{
+ * @param title: {
  *   text: string,
  *   align: 'left' | 'center' | 'right',
  *   verticalAlign: 'top' | 'center' | 'bottom',
@@ -86,12 +86,18 @@ function Chart(config) {
  *   x: number,
  *   y: number,
  *   backgroundColor: string,
+ *   spacing: {
+ *     top: number,
+ *     left: number,
+ *     right: number,
+ *     bottom: number,
+ *   },
  *   style: {
  *     color: string,
  *     fontSize: number,
  *     fontWeight: number | string,
  *   },
- * }}
+ * }
  * @param config: object
  */
 function ChartTitle(title, config) {
@@ -102,59 +108,48 @@ function ChartTitle(title, config) {
   this.config = config;
   this.title = title;
 
-  var alignH = getTextAlign(this.title.align, chartDefaults.title.align);
-  var alignV = getTextVerticalAlign(this.title.verticalAlign, chartDefaults.title.verticalAlign);
-
   var style = Object.assign({}, chartDefaults.title.style, this.title.style);
 
   this.width = this.title.width || this.config.chart.width;
   this.height = this.title.height || style.fontSize * appConfig.defaultLineHeight;
 
+  var alignH = getTextAlign(this.title.align, (chartDefaults.title || {}).align);
+  var alignV = getTextVerticalAlign(this.title.verticalAlign, (chartDefaults.title || {}).verticalAlign);
+  var spacingCoords = getCoordsFromSpacing(this.title.spacing, { width: this.width, height: this.height });
+  var fillRect = this.title.backgroundColor || chartDefaults.title.backgroundColor;
+  var xTextAlign = (this.title.x || 0) + alignH === 'middle'
+    ? spacingCoords.x1 + spacingCoords.innerWidth / 2
+    : alignH === 'end'
+      ? spacingCoords.x1 + spacingCoords.innerWidth
+      : spacingCoords.x1;
+  var yTextAlign = (this.title.y || 0) + alignV === 'middle'
+    ? spacingCoords.y1 + spacingCoords.innerHeight / 2
+    : alignV === 'baseline'
+      ? spacingCoords.y1 + spacingCoords.innerHeight - (style.fontSize * appConfig.defaultLineHeight - style.fontSize) / 2
+      : spacingCoords.y1;
+
+  var titleRectProps = {
+    fill: fillRect,
+    x: spacingCoords.x1,
+    y: spacingCoords.y1,
+    width: spacingCoords.innerWidth,
+    height: spacingCoords.innerHeight,
+  };
+
+  var titleTextProps = {
+    style: stylesObjectToString(style),
+    fill: style.color,
+    x: xTextAlign,
+    y: yTextAlign,
+    'text-anchor': alignH,
+    'dominant-baseline': alignV,
+  };
+
   this.containers = {};
-  this.containers.titleTspan = createSVGElement(
-    'tspan',
-    null,
-    this.title.text,
-  );
-  this.containers.titleRect = createSVGElement(
-    'rect',
-    {
-      fill: this.title.backgroundColor || 'transparent',
-      width: this.width - (this.title.x || 0),
-      height: this.height,
-      x: this.title.x,
-      y: this.title.y,
-    },
-  );
-  this.containers.titleText = createSVGElement(
-    'text',
-    {
-      style: stylesObjectToString(style),
-      fill: style.color,
-      'text-anchor': alignH,
-      'dominant-baseline': alignV,
-      x: (this.title.x || 0)
-        + (
-          alignH === 'middle'
-            ? this.config.chart.width / 2
-            : alignH === 'end'
-            ? this.config.chart.width
-            : 0
-        ),
-      y: (this.title.y || 0)
-        + (
-          alignV === 'middle'
-            ? this.height / 2
-            : alignV === 'baseline'
-            ? this.height - (style.fontSize * appConfig.defaultLineHeight - style.fontSize) / 2
-            : 0
-        ),
-    },
-    this.containers.titleTspan,
-  );
-  this.containers.titleGroup = createSVGElement(
-    'g',
-    null,
+  this.containers.titleRect = createSVGElement('rect', titleRectProps);
+  this.containers.titleTspan = createSVGElement('tspan', null, this.title.text);
+  this.containers.titleText = createSVGElement('text', titleTextProps, this.containers.titleTspan);
+  this.containers.titleGroup = createSVGElement('g', null,
     this.containers.titleRect,
     this.containers.titleText,
   );
@@ -166,6 +161,12 @@ function ChartTitle(title, config) {
  * @constructor ChartYAxis
  *
  * @param yAxis: {{
+ *   spacing: {
+ *     top: number,
+ *     left: number,
+ *     right: number,
+ *     bottom: number,
+ *   },
  *   line: {
  *     x: number,
  *     y: number,
@@ -185,79 +186,135 @@ function ChartTitle(title, config) {
  * @param config: object
  */
 function ChartYAxis(yAxis, config) {
-  if (!yAxis || !config.series) {
+  if (!yAxis || !Array.isArray(config.series)) {
+    return;
+  }
+
+  this.config = config;
+  this.yAxis = yAxis || {};
+  this.yAxis.line = this.yAxis.line || {};
+  this.yAxis.labels = this.yAxis.labels || {};
+
+  this.yAxisLine = new ChartYAxisLine(this.yAxis.line, this.config);
+  this.yAxisLabels = new ChartYAxisLabels(this.yAxis.labels, this.config);
+
+  this.containers = {};
+  this.containers.yAxisGroup = createSVGElement('g',null,
+    this.yAxisLine.containers && this.yAxisLine.containers.yAxisLine,
+    this.yAxisLabels.containers && this.yAxisLabels.containers.yAxisLabels,
+  );
+}
+
+/**
+ * @description Create yAxis line.
+ *
+ * @constructor ChartYAxisLine
+ *
+ * @param yAxisLine: {
+ *   x: number,
+ *   y: number,
+ *   width: number,
+ *   color: string,
+ * },
+ * @param config: object
+ */
+function ChartYAxisLine(yAxisLine, config) {
+  if (!yAxisLine) {
+    return;
+  }
+
+  this.config = config;
+  this.yAxisLine = yAxisLine || {};
+  this.yAxis = this.config.yAxis || {};
+  this.yAxis.spacing = Object.assign({}, this.yAxis.spacing, (chartDefaults.yAxis || {}).spacing);
+  this.title = this.config.title || {};
+  this.title.spacing = Object.assign({}, this.title.spacing, (chartDefaults.title || {}).spacing);
+  this.title.style = Object.assign({}, chartDefaults.title.style, this.title.style);
+  this.title.height = this.title.height || (this.title.style.fontSize * appConfig.defaultLineHeight + (this.title.spacing.top || 0) + (this.title.spacing.bottom || 0));
+
+  var spacingCoords = getCoordsFromSpacing(this.yAxis.spacing, { width: this.config.chart.width, height: this.config.chart.height - this.title.height });
+  var dOfPath = 'M ' + spacingCoords.x1 + ',' + (spacingCoords.y1 + this.title.height) + ' v ' + spacingCoords.y2;
+  var stroke = this.yAxisLine.color || ((chartDefaults.yAxis || {}).line || {}).color;
+  var strokeWidth = (this.yAxisLine.width || ((chartDefaults.yAxis || {}).line || {}).width) + 'px';
+
+  var yAxisLineProps = {
+    d: dOfPath,
+    stroke: stroke,
+    'stroke-width': strokeWidth,
+  };
+
+  this.containers = {};
+  this.containers.yAxisLine = createSVGElement('path', yAxisLineProps);
+}
+
+/**
+ * @description Create yAxis labels.
+ *
+ * @constructor ChartYAxisLabels
+ *
+ * @param yAxisLabels: {
+ *   x: number,
+ *   y: number,
+ *   align: 'start' | 'middle' | 'end',
+ *   verticalAlign: 'hanging' | 'middle' | 'baseline',
+ *   style: {
+ *     color: string,
+ *     fontSize: number,
+ *     fontWeight: number | string,
+ *   }
+ * },
+ * @param config: object
+ */
+function ChartYAxisLabels(yAxisLabels, config) {
+  if (!yAxisLabels) {
     return;
   }
 
   this.config = config;
   this.config.series = config.series;
-  this.yAxis = yAxis || {};
-  this.yAxis.line = this.yAxis.line || {};
-  this.yAxis.labels = this.yAxis.labels || {};
-  this.xAxis = this.config.xAxis || {};
-  this.xAxis.line = this.xAxis.line || {};
+  this.yAxisLabels = yAxisLabels || {};
+  this.yAxisLabels.style = yAxisLabels.style || {};
+  this.yAxis = this.config.yAxis || {};
+  this.yAxis.spacing = Object.assign({}, this.yAxis.spacing, (chartDefaults.yAxis || {}).spacing);
+  this.title = this.config.title || {};
+  this.title.spacing = Object.assign({}, this.title.spacing, (chartDefaults.title || {}).spacing);
+  this.title.style = Object.assign({}, chartDefaults.title.style, this.title.style);
+  this.title.height = this.title.height || (this.title.style.fontSize * appConfig.defaultLineHeight + (this.title.spacing.top || 0) + (this.title.spacing.bottom || 0));
 
-  this.containers = {};
-
-  var lineCoords = {
-    x1: this.yAxis.line.x || 0,
-    y1: (this.yAxis.line.y || 0) + (this.config.title.height || 0),
-    x2: this.yAxis.line.x || 0,
-    y2: this.yAxis.line.height ||
-      (this.config.chart.height || 0) + (this.yAxis.line.y || 0) + ((chartDefaults.xAxis.line.y || 0) + (this.xAxis.line.y || 0)),
-  };
-
-  var alignH = getTextAlign(this.yAxis.labels.align, (chartDefaults.yAxis.labels || {}).align);
-  var alignV = getTextVerticalAlign(this.yAxis.labels.verticalAlign, (chartDefaults.yAxis.labels || {}).verticalAlign);
-
-  if (!Array.isArray(this.config.series)) {
-    throw new Error('"Series" must be an array');
-  }
+  var alignH = getTextAlign(this.yAxisLabels.align, ((chartDefaults.yAxis || {}).labels || {}).align);
+  var alignV = getTextVerticalAlign(this.yAxisLabels.verticalAlign, ((chartDefaults.yAxis || {}).labels || {}).verticalAlign);
+  var spacingCoords = getCoordsFromSpacing(this.yAxis.spacing, { width: this.config.chart.width, height: this.config.chart.height - this.title.height });
 
   var minYMaxY = getMinMaxOfSeriesData(this.config.series, 'y');
-
   var stepY = (minYMaxY.max - Math.min(minYMaxY.min, 0)) / 5;
-
   var labelsData = new Array(6).fill(0).map(function (n, i) {
     return +(Math.min(minYMaxY.min, 0) + (i * stepY)).toFixed(2);
   });
 
-  this.containers.yAxisLabels = labelsData.map(function (labelText, i) {
-    var tspan = createSVGElement(
-      'tspan',
-      null,
-      labelText,
-    );
-    var text = createSVGElement(
-      'text',
-      {
-        style: stylesObjectToString(this.yAxis.labels),
-        fill: this.yAxis.labels.color,
-        'text-anchor': alignH,
-        'dominant-baseline': alignV,
-        x: (this.yAxis.line.x || 0) + (this.yAxis.labels.x || 0) + (chartDefaults.yAxis.labels.x || 0),
-        y: (this.yAxis.line.y || 0) + (this.yAxis.labels.y || 0) + (lineCoords.y2 - i * ((lineCoords.y2 - lineCoords.y1) / labelsData.length)),
-      },
-      tspan
-    );
+  var yAxisLabelsText = labelsData.map(function (labelText, i) {
+    var fillTextProps = this.yAxisLabels.style.color || (((chartDefaults.yAxis || {}).labels || {}).style || {}).color;
+    var xTextProps = (spacingCoords.x1 + (this.yAxisLabels.x || 0)) || ((chartDefaults.yAxis || {}.labels || {}).x || 0);
+    var yTextProps = (this.title.height + (this.yAxisLabels.y || 0)) || ((chartDefaults.yAxis || {}.labels || {}).y || 0);
+    var steppedYTextProp = (yTextProps + spacingCoords.y2) - i * spacingCoords.y2 / 5;
+
+
+    var textProps = {
+      style: stylesObjectToString(this.yAxisLabels.style),
+      fill: fillTextProps,
+      x: xTextProps,
+      y: steppedYTextProp,
+      'text-anchor': alignH,
+      'dominant-baseline': alignV,
+    };
+
+    var tspan = createSVGElement('tspan',null, labelText);
+    var text = createSVGElement('text', textProps, tspan);
+
     return text;
   }.bind(this));
 
-  this.containers.yAxisLine = createSVGElement(
-    'path',
-    {
-      d: 'M ' + lineCoords.x1 + ',' + lineCoords.y1 + ' v ' + (lineCoords.y2 - lineCoords.y1),
-      stroke: this.yAxis.line.color || store.theme.styles.yLines,
-      'stroke-width': (this.yAxis.line.width || 1) + 'px',
-    },
-  );
-
-  this.containers.yAxisGroup = createSVGElement(
-    'g',
-    null,
-    this.containers.yAxisLine,
-    this.containers.yAxisLabels
-  );
+  this.containers = {};
+  this.containers.yAxisLabels = yAxisLabelsText;
 }
 
 /**
@@ -337,7 +394,7 @@ function ChartXAxis(xAxis, config) {
         x: (this.xAxis.line.x || 0) + (this.yAxis.line.x || 0) + (this.xAxis.labels.x || 0) + (i * ((lineCoords.x2 - lineCoords.x1) / labelsData.length)),
         y: (this.config.chart.height) + (this.xAxis.line.y || 0) + (this.xAxis.labels.y || 0) + (chartDefaults.xAxis.labels.y || 0),
       },
-      tspan
+      tspan,
     );
     return text;
   }.bind(this));
@@ -355,6 +412,6 @@ function ChartXAxis(xAxis, config) {
     'g',
     null,
     this.containers.xAxisLine,
-    this.containers.xAxisLabels
+    this.containers.xAxisLabels,
   );
 }

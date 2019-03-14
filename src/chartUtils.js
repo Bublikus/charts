@@ -97,3 +97,67 @@ function getTextVerticalAlign(verticalAlign, defaultVerticalAlign) {
       : verticalAlign === 'bottom' ? 'baseline'
         : verticalAlign || defaultVerticalAlign;
 }
+
+/**
+ * @description Get coords of real chart sizes from spacing.
+ *
+ * @function getCoordsFromSpacing
+ *
+ * @param spacing: {
+ *   top: number,
+ *   left: number,
+ *   right: number,
+ *   bottom: number,
+ * }
+ * @param mainSize: {
+ *   width: number,
+ *   height: number,
+ * }
+ *
+ * @return {{
+ *   x1: number,
+ *   y1: number,
+ *   x2: number,
+ *   y2: number,
+ *   innerWidth: number,
+ *   innerHeight: number,
+ * }}
+ */
+function getCoordsFromSpacing(spacing, mainSize) {
+  if (!mainSize) {
+    return {
+      x1: 0,
+      y1: 0,
+      x2: 0,
+      y2: 0,
+    }
+  }
+
+  mainSize.width = mainSize.width || 0;
+  mainSize.height = mainSize.height || 0;
+
+  if (!spacing) {
+    return {
+      x1: 0,
+      y1: 0,
+      x2: mainSize.width,
+      y2: mainSize.height,
+      innerWidth: mainSize.width,
+      innerHeight: mainSize.height,
+    }
+  }
+
+  spacing.top = spacing.top || 0;
+  spacing.left = spacing.left || 0;
+  spacing.right = spacing.right || 0;
+  spacing.bottom = spacing.bottom || 0;
+
+  return {
+    x1: spacing.left,
+    y1: spacing.top,
+    x2: mainSize.width - spacing.right,
+    y2: mainSize.height - spacing.bottom,
+    innerWidth: mainSize.width - spacing.left - spacing.right,
+    innerHeight: mainSize.height - spacing.top - spacing.bottom,
+  }
+}

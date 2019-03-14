@@ -14,6 +14,12 @@
  *      x: number,
  *      y: number,
  *      backgroundColor: string,
+ *      spacing: {
+ *        top: number,
+ *        left: number,
+ *        right: number,
+ *        bottom: number,
+ *      },
  *      style: {
  *        color: string,
  *        fontSize: number,
@@ -21,6 +27,12 @@
  *      },
  *    }},
  *    xAxis: {
+ *      spacing: {
+ *        top: number,
+ *        left: number,
+ *        right: number,
+ *        bottom: number,
+ *      },
  *      line: {
  *        x: number,
  *        y: number,
@@ -39,6 +51,12 @@
  *      }
  *    },
  *    yAxis: {
+ *      spacing: {
+ *        top: number,
+ *        left: number,
+ *        right: number,
+ *        bottom: number,
+ *      },
  *      line: {
  *        x: number,
  *        y: number,
@@ -72,6 +90,12 @@ const chartDefaults = {
     align: 'middle',
     verticalAlign: 'middle',
     backgroundColor: 'transparent',
+    spacing: {
+      top: 5,
+      left: 15,
+      right: 15,
+      bottom: 5,
+    },
     style: {
       color: 'black',
       fontSize: 16,
@@ -79,32 +103,43 @@ const chartDefaults = {
     }
   },
   xAxis: {
+    spacing: {
+      left: 15,
+      right: 15,
+      bottom: 30,
+    },
     line: {
       color: 'grey',
       width: 1,
-      y: -30,
     },
     labels: {
-      y: -10,
-      color: 'grey',
-      fontSize: 16,
-      fontWeight: 'normal',
       align: 'start',
       verticalAlign: 'baseline',
+      style: {
+        color: 'grey',
+        fontSize: 16,
+        fontWeight: 'normal',
+      },
     }
   },
   yAxis: {
+    spacing: {
+      top: 5,
+      left: 15,
+      bottom: 30,
+    },
     line: {
-      y: 30,
       color: 'grey',
       width: 1,
     },
     labels: {
-      y: 15,
-      color: 'grey',
-      fontSize: 16,
-      fontWeight: 'normal',
-      verticalAlign: 'bottoms',
+      y: 5,
+      verticalAlign: 'middle',
+      style: {
+        color: 'grey',
+        fontSize: 16,
+        fontWeight: 'normal',
+      },
     }
   },
   legend: {},

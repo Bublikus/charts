@@ -45,6 +45,12 @@ function start(chartsData) {
  *      x: number,
  *      y: number,
  *      backgroundColor: string,
+ *      spacing: {
+ *        top: number,
+ *        left: number,
+ *        right: number,
+ *        bottom: number,
+ *      },
  *      style: {
  *        color: string,
  *        fontSize: number,
@@ -52,6 +58,12 @@ function start(chartsData) {
  *      },
  *    }},
  *    xAxis: {
+ *      spacing: {
+ *        top: number,
+ *        left: number,
+ *        right: number,
+ *        bottom: number,
+ *      },
  *      line: {
  *        x: number,
  *        y: number,
@@ -62,14 +74,22 @@ function start(chartsData) {
  *      labels: {
  *        x: number,
  *        y: number,
- *        color: string,
- *        fontSize: number,
- *        fontWeight: number | string,
  *        align: 'left' | 'center' | 'right',
  *        verticalAlign: 'top' | 'center' | 'bottom',
+ *        style: {
+ *          color: string,
+ *          fontSize: number,
+ *          fontWeight: number | string,
+ *        }
  *      }
  *    },
  *    yAxis: {
+ *      spacing: {
+ *        top: number,
+ *        left: number,
+ *        right: number,
+ *        bottom: number,
+ *      },
  *      line: {
  *        x: number,
  *        y: number,
@@ -80,11 +100,13 @@ function start(chartsData) {
  *      labels: {
  *        x: number,
  *        y: number,
- *        color: string,
- *        fontSize: number,
- *        fontWeight: number | string,
  *        align: 'left' | 'center' | 'right',
  *        verticalAlign: 'top' | 'center' | 'bottom',
+ *        style: {
+ *          color: string,
+ *          fontSize: number,
+ *          fontWeight: number | string,
+ *        }
  *      }
  *    },
  *    legend: {},
@@ -108,8 +130,12 @@ function transformChartDataToConfig(chartsData) {
       text: 'Followers',
       align: 'left',
       verticalAlign: 'bottom',
-      height: 50,
-      x: 20,
+      height: 55,
+      spacing: {
+        top: 30,
+        left: 20,
+        bottom: 10,
+      },
       style: {
         color: theme.mainFont,
       },
@@ -120,19 +146,22 @@ function transformChartDataToConfig(chartsData) {
         width: -15,
       },
       labels: {
-        color: theme.xLabels,
-        fontSize: 14,
+        style: {
+          color: theme.xLabels,
+          fontSize: 14,
+        },
       }
     },
     yAxis: {
       line: {
-        x: 15,
         color: 'transparent',
       },
       labels: {
-        color: theme.yLabels,
-        fontSize: 14,
-        height: -5,
+        y: 5,
+        style: {
+          color: theme.yLabels,
+          fontSize: 14,
+        },
       }
     },
     legend: {
