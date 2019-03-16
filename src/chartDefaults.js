@@ -147,6 +147,14 @@
  *  legend: {
  *   enabled: boolean,
  *  },
+ *  areaOptions: {
+ *   spacing: {
+ *    top: number,
+ *    left: number,
+ *    right: number,
+ *    bottom: number
+ *   },
+ *  },
  *  series: {
  *   type: 'line',
  *   data: {
@@ -165,7 +173,7 @@
  *  }[],
  * }}
  */
-const chartDefaults = {
+var chartDefaults = {
   chart: {
     width: 0,
     height: 0,
@@ -313,6 +321,14 @@ const chartDefaults = {
   },
   legend: {
     enabled: true,
+  },
+  areaOptions: {
+    spacing: {
+      top: 15,
+      left: 30,
+      right: 30,
+      bottom: 50,
+    },
   },
   series: [],
 };

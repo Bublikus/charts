@@ -180,6 +180,14 @@ function start(chartsData) {
  *  legend: {
  *   enabled: boolean,
  *  },
+ *  areaOptions: {
+ *   spacing: {
+ *    top: number,
+ *    left: number,
+ *    right: number,
+ *    bottom: number
+ *   },
+ *  },
  *  series: {
  *   type: 'line',
  *   data: {
@@ -259,6 +267,11 @@ function transformChartDataToMainChartConfig(chartsData) {
           fill: theme.yLabels,
         },
       }
+    },
+    areaOptions: {
+      spacing: {
+        top: 30,
+      },
     },
     legend: {
 
@@ -419,6 +432,14 @@ function transformChartDataToMainChartConfig(chartsData) {
  *  legend: {
  *   enabled: boolean,
  *  },
+ *  areaOptions: {
+ *   spacing: {
+ *    top: number,
+ *    left: number,
+ *    right: number,
+ *    bottom: number
+ *   },
+ *  },
  *  series: {
  *   type: 'line',
  *   data: {
@@ -457,6 +478,12 @@ function transformChartDataToSubChartConfig(chartsData) {
     },
     legend: {
       enabled: false,
+    },
+    areaOptions: {
+      spacing: {
+        top: 10,
+        bottom: 10,
+      },
     },
     series: series,
   };

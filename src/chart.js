@@ -63,6 +63,7 @@ function Chartic(config) {
   this.title = new ChartTitle(this.config.title, this.config);
   this.yAxis = new ChartYAxis(this.config.yAxis, this.config);
   this.xAxis = new ChartXAxis(this.config.xAxis, this.config);
+  this.series = new ChartSeries(this.config.series, this.config);
 
   var svgAttr = {
     xmlns: 'http://www.w3.org/2000/svg',
@@ -75,6 +76,7 @@ function Chartic(config) {
     this.config.title.enabled && this.config.title && this.title.containers.titleGroup,
     this.config.yAxis.enabled && this.config.yAxis && this.yAxis.containers.yAxisGroup,
     this.config.xAxis.enabled && this.config.xAxis && this.xAxis.containers.xAxisGroup,
+    this.series.containers.seriesGroup,
   ]);
 
   this.config.chart.renderTo.appendChild(this.svg);
@@ -257,7 +259,7 @@ function ChartYAxisLine(yAxisLine, config) {
   this.config = config;
   this.yAxisLine = yAxisLine;
 
-  var innerContentCoords = getCoordsUnderTitle(config, this.config.yAxis.spacing);
+  var innerContentCoords = getCoordsUnderTitle(this.config, this.config.yAxis.spacing);
   var dOfPath = 'M ' + innerContentCoords.x1 + ',' + innerContentCoords.y1 + ' V ' + innerContentCoords.y2;
 
   var yAxisLineAttr = Object.assign({}, attrObjectToValidObject(this.yAxisLine.attr), {
@@ -293,7 +295,7 @@ function ChartYAxisLineGrids(yAxisLineGrids, config) {
   this.config = config;
   this.yAxisLineGrids = yAxisLineGrids;
 
-  var innerContentCoords = getCoordsUnderTitle(config, this.config.yAxis.spacing);
+  var innerContentCoords = getCoordsUnderTitle(this.config, this.config.yAxis.spacing);
 
   var yAxisLineGridsArray = new Array(this.config.yAxis.ticksAmount)
     .fill(0)
@@ -347,7 +349,7 @@ function ChartYAxisLabels(yAxisLabels, config) {
   this.config = config;
   this.yAxisLineLabels = yAxisLabels;
 
-  var innerLabelsContentCoords = getCoordsUnderTitle(config, {
+  var innerLabelsContentCoords = getCoordsUnderTitle(this.config, {
     top: this.config.yAxis.spacing.top + this.config.yAxis.labels.spacing.top,
     left: this.config.yAxis.spacing.left + this.config.yAxis.labels.spacing.left,
     right: this.config.yAxis.spacing.right + this.config.yAxis.labels.spacing.right,
@@ -372,7 +374,7 @@ function ChartYAxisLabels(yAxisLabels, config) {
     }.bind(this));
 
   this.containers = {};
-  this.containers.yAxisLabels = yAxisLineLabelsArray;
+  this.containers.yAxisLabels = createSVGElement('g', null, yAxisLineLabelsArray);
 }
 
 // ================================================================================================================= //
@@ -447,7 +449,7 @@ function ChartXAxisLine(xAxisLine, config) {
   this.config = config;
   this.xAxisLine = xAxisLine;
 
-  var innerContentCoords = getCoordsUnderTitle(config, this.config.xAxis.spacing);
+  var innerContentCoords = getCoordsUnderTitle(this.config, this.config.xAxis.spacing);
   var dOfPath = 'M ' + innerContentCoords.x1 + ',' + innerContentCoords.y2 + ' H ' + innerContentCoords.x2;
 
   var xAxisLineAttr = Object.assign({}, attrObjectToValidObject(this.xAxisLine.attr), {
@@ -483,7 +485,7 @@ function ChartXAxisLineGrids(xAxisLineGrids, config) {
   this.config = config;
   this.xAxisLineGrids = xAxisLineGrids;
 
-  var innerContentCoords = getCoordsUnderTitle(config, this.config.xAxis.spacing);
+  var innerContentCoords = getCoordsUnderTitle(this.config, this.config.xAxis.spacing);
 
   var xAxisLineGridsArray = new Array(this.config.xAxis.ticksAmount)
     .fill(0)
@@ -537,7 +539,7 @@ function ChartXAxisLabels(xAxisLabels, config) {
   this.config = config;
   this.xAxisLineLabels = xAxisLabels;
 
-  var innerLabelsContentCoords = getCoordsUnderTitle(config, {
+  var innerLabelsContentCoords = getCoordsUnderTitle(this.config, {
     top: this.config.xAxis.spacing.top + this.config.xAxis.labels.spacing.top,
     left: this.config.xAxis.spacing.left + this.config.xAxis.labels.spacing.left,
     right: this.config.xAxis.spacing.right + this.config.xAxis.labels.spacing.right,
@@ -564,5 +566,62 @@ function ChartXAxisLabels(xAxisLabels, config) {
     }.bind(this));
 
   this.containers = {};
-  this.containers.xAxisLabels = xAxisLineLabelsArray;
+  this.containers.xAxisLabels = createSVGElement('g', null, xAxisLineLabelsArray);
+}
+
+// ================================================================================================================= //
+// ================================================== CHART SERIES ================================================= //
+// ================================================================================================================= //
+
+function ChartSeries(series, config) {
+  this.config = config;
+  this.series = series;
+  this.areaOptions = this.config.areaOptions;
+
+  var areaCoords = getCoordsUnderTitle(this.config, this.areaOptions.spacing);
+
+  var chartSeries = this.series
+    .map(function (seriesItem) {
+
+      return ((seriesItem || {}).data || [])
+        .reduce(function (acc, dataItem, i, dataArray) {
+          if (!dataItem || (i === dataArray.length - 1)) {
+            return acc;
+          }
+          var newData = Object.assign({}, dataItem, {
+            x1: dataItem.x,
+            y1: dataItem.y,
+            x2: dataArray[i + 1].x,
+            y2: dataArray[i + 1].y,
+          });
+          acc.push(newData);
+          return acc;
+        }, []);
+    })
+    .map(function (seriesWithCoords) {
+      var minMaxX = getMinMaxOfSeriesData(this.config.series, 'x');
+      var minMaxY = getMinMaxOfSeriesData(this.config.series, 'y');
+
+      return seriesWithCoords
+        .map(function (dataWithCoords) {
+          var x1 = areaCoords.x1 + areaCoords.innerWidth * ((dataWithCoords.x1 - minMaxX.min) / (minMaxX.max - minMaxX.min));
+          var y1 = areaCoords.y1 + areaCoords.innerHeight * ((dataWithCoords.y1 - minMaxY.min) / (minMaxY.max - minMaxY.min));
+          var x2 = areaCoords.x1 + areaCoords.innerWidth * ((dataWithCoords.x2 - minMaxX.min) / (minMaxX.max - minMaxX.min));
+          var y2 = areaCoords.y1 + areaCoords.innerHeight * ((dataWithCoords.y2 - minMaxY.min) / (minMaxY.max - minMaxY.min));
+
+          var defaultAttr = attrObjectToValidObject({
+            strokeWidth: 3,
+          });
+          var configAttr = attrObjectToValidObject(dataWithCoords.attr);
+          var generatedAttr = {
+            d: 'M ' + x1 + ',' + y1 + ' L ' + x2 + ',' + y2,
+          };
+          var pathAttr = Object.assign({}, defaultAttr, configAttr, generatedAttr);
+
+          return createSVGElement('path', pathAttr);
+        });
+    }.bind(this));
+
+  this.containers = {};
+  this.containers.seriesGroup = createSVGElement('g', null, chartSeries);
 }
