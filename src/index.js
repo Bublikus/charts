@@ -31,93 +31,147 @@ function start(chartsData) {
  * @param chartsData
  *
  * @return {{
- *    chart: {{
- *      renderTo: string | HTMLElement,
- *      width: number,
- *      height: number,
- *    }}
- *    title: {{
- *      text: string,
- *      align: 'left' | 'center' | 'right',
- *      verticalAlign: 'top' | 'center' | 'bottom',
- *      width: number,
- *      height: number,
- *      x: number,
- *      y: number,
- *      backgroundColor: string,
- *      spacing: {
- *        top: number,
- *        left: number,
- *        right: number,
- *        bottom: number,
- *      },
- *      style: {
- *        color: string,
- *        fontSize: number,
- *        fontWeight: number | string,
- *      },
- *    }},
- *    xAxis: {
- *      spacing: {
- *        top: number,
- *        left: number,
- *        right: number,
- *        bottom: number,
- *      },
- *      line: {
- *        x: number,
- *        y: number,
- *        width: number,
- *        height: number,
- *        color: string,
- *      },
- *      labels: {
- *        x: number,
- *        y: number,
- *        align: 'left' | 'center' | 'right',
- *        verticalAlign: 'top' | 'center' | 'bottom',
- *        style: {
- *          color: string,
- *          fontSize: number,
- *          fontWeight: number | string,
- *        }
- *      }
+ *  chart: {
+ *   width: number,
+ *   height: number,
+ *   renderTo: string | HTMLElement,
+ *  },
+ *  title: {
+ *   x: number,
+ *   y: number,
+ *   text: string,
+ *   backgroundColor: string,
+ *   spacing: {
+ *    top: number,
+ *    left: number,
+ *    right: number,
+ *    bottom: number,
+ *   },
+ *   attr: {
+ *    fill: string,
+ *    textAnchor: 'start' | 'middle' | 'end',
+ *    dominantBaseline: 'hanging' | 'middle' | 'baseline',
+ *   },
+ *   style: {
+ *    fontSize: number
+ *    fontWeight: number | string,
+ *   },
+ *  },
+ *  xAxis: {
+ *   ticksAmount: number,
+ *   spacing: {
+ *    top: number,
+ *    left: number,
+ *    right: number,
+ *    bottom: number
+ *   },
+ *   gridLine: {
+ *    x: number,
+ *    y: number,
+ *    attr: {
+ *     stroke: string,
+ *     strokeWidth: number,
+ *     strokeDasharray: string,
  *    },
- *    yAxis: {
- *      spacing: {
- *        top: number,
- *        left: number,
- *        right: number,
- *        bottom: number,
- *      },
- *      line: {
- *        x: number,
- *        y: number,
- *        width: number,
- *        height: number,
- *        color: string,
- *      },
- *      labels: {
- *        x: number,
- *        y: number,
- *        align: 'left' | 'center' | 'right',
- *        verticalAlign: 'top' | 'center' | 'bottom',
- *        style: {
- *          color: string,
- *          fontSize: number,
- *          fontWeight: number | string,
- *        }
- *      }
+ *    style: {
+ *
+ *    }
+ *   },
+ *   line: {
+ *    x: number,
+ *    y: number,
+ *    attr: {
+ *     stroke: string,
+ *     strokeWidth: number,
+ *     strokeDasharray: string,
  *    },
- *    legend: {},
- *    series: {
- *      type: 'line',
- *      data: {
- *        x: number,
- *        y: number,
- *      }[],
- *    }[],
- *  }}
+ *    style: {
+ *
+ *    }
+ *   },
+ *   labels: {
+ *    x: number,
+ *    y: number,
+ *    spacing: {
+ *     top: number,
+ *     left: number,
+ *     right: number,
+ *     bottom: number
+ *    },
+ *    attr: {
+ *     fill: string,
+ *     textAnchor: 'start' | 'middle' | 'end',
+ *     dominantBaseline: 'hanging' | 'middle' | 'baseline',
+ *    },
+ *    style: {
+ *     fontSize: number,
+ *     fontWeight: number | string,
+ *    },
+ *   }
+ *  },
+ *  yAxis: {
+ *   ticksAmount: number,
+ *   spacing: {
+ *    top: number,
+ *    left: number,
+ *    right: number,
+ *    bottom: number
+ *   },
+ *   gridLine: {
+ *    x: number,
+ *    y: number,
+ *    attr: {
+ *     stroke: string,
+ *     strokeWidth: number,
+ *     strokeDasharray: string,
+ *    },
+ *    style: {
+ *
+ *    }
+ *   },
+ *   line: {
+ *    x: number,
+ *    y: number,
+ *    attr: {
+ *     stroke: string,
+ *     strokeWidth: number,
+ *     strokeDasharray: string,
+ *    },
+ *    style: {
+ *
+ *    }
+ *   },
+ *   labels: {
+ *    x: number,
+ *    y: number,
+ *    spacing: {
+ *     top: number,
+ *     left: number,
+ *     right: number,
+ *     bottom: number
+ *    },
+ *    attr: {
+ *     fill: string,
+ *     textAnchor: 'start' | 'middle' | 'end',
+ *     dominantBaseline: 'hanging' | 'middle' | 'baseline',
+ *    },
+ *    style: {
+ *     fontSize: number,
+ *     fontWeight: number | string,
+ *    },
+ *   }
+ *  },
+ *  legend: {
+ *
+ *  },
+ *  series: [{
+ *   type: 'line',
+ *   data: {
+ *    x: number,
+ *    y: number,
+ *   },
+ *  }],
+ * }}
  */
 function transformChartDataToConfig(chartsData) {
   var theme = store.theme.styles;
@@ -128,39 +182,33 @@ function transformChartDataToConfig(chartsData) {
     },
     title: {
       text: 'Followers',
-      align: 'left',
-      verticalAlign: 'bottom',
-      height: 55,
-      spacing: {
-        top: 30,
-        left: 20,
-        bottom: 10,
-      },
-      style: {
-        color: theme.mainFont,
+      attr: {
+        fill: theme.mainFont,
+        textAnchor: 'start',
+        dominantBaseline: 'middle',
       },
     },
     xAxis: {
       line: {
-        color: theme.xLines,
-        width: -15,
+        attr: {
+         stroke: theme.xLines,
+        }
       },
       labels: {
-        style: {
-          color: theme.xLabels,
-          fontSize: 14,
+        attr: {
+          fill: theme.xLabels,
         },
       }
     },
     yAxis: {
       line: {
-        color: 'transparent',
+        attr: {
+          stroke: theme.yLines,
+        }
       },
       labels: {
-        y: 5,
-        style: {
-          color: theme.yLabels,
-          fontSize: 14,
+        attr: {
+          fill: theme.yLabels,
         },
       }
     },

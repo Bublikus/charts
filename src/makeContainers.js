@@ -8,28 +8,20 @@
 function makeContainers() {
   // Get root container
   var rootContainer = document.getElementById('root');
+  rootContainer.style.backgroundColor = store.theme.styles.mainBackground;
 
   eventAggregator.subscribe('switchTheme', function (theme) {
     rootContainer.style.backgroundColor = theme.styles.mainBackground;
   });
 
-  var mainChartContainer = createElement(
-    'div',
-    { id: 'mainChart' },
-  );
-  var subChartContainer = createElement(
-    'div',
-    { id: 'subChart' },
-  );
-  var mainContainer = createElement(
-    'div',
-    { className: 'main-container' },
+  var mainChartContainer = createElement('div', { id: 'mainChart' });
+  var subChartContainer = createElement('div', { id: 'subChart' });
+  var mainContainer = createElement('div',{ className: 'main-container' }, [
     mainChartContainer,
-    subChartContainer
-  );
+    subChartContainer,
+  ]);
 
-  var switchButton = createElement(
-    'button',
+  var switchButton = createElement('button',
     {
       type: 'button',
       id: 'switch-button',
@@ -39,11 +31,7 @@ function makeContainers() {
     },
     store.theme.themeKey === 'day' ? 'Switch to Night Mode' : 'Switch to Day Mode',
   );
-  var switchButtonContainer = createElement(
-    'div',
-    { className: 'switch-button-container' },
-    switchButton,
-  );
+  var switchButtonContainer = createElement('div',{ className: 'switch-button-container' }, switchButton);
 
   // Subscribe on theme change.
   eventAggregator.subscribe('switchTheme', function (theme) {

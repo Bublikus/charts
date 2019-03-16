@@ -10,24 +10,19 @@
 function getJson(pathToJsonFile) {
   return new Promise(function (resolve, reject) {
     var request = new XMLHttpRequest();
-
     request.open('GET', pathToJsonFile);
     request.responseType = 'json';
     request.send();
-
     request.onload = function () {
       if (request.status >= 200 && request.status < 300) {
-
         // Success
         resolve(request.response);
       } else {
-
         // Errors
         alert(request.status + ': ' + request.statusText + '. Path to JSON file: ' + pathToJson);
         reject(request);
       }
     };
-
     // Errors
     request.onerror = function () {
       reject(request);
@@ -36,22 +31,34 @@ function getJson(pathToJsonFile) {
 }
 
 /**
+ * @description Check is property object.
+ *
+ * @function isObject
+ *
+ * @param obj
+ *
+ * @return {boolean}
+ */
+function isObject(obj) {
+  return (obj instanceof Object) && obj !== null && !Array.isArray(obj);
+}
+
+/**
  * @description Create element util.
  *
  * @function createElement
  *
  * @param tag: string
- * @param props: object
+ * @param attr: object
  * @param children: string | node | (string | node)[]
  *
  * @return HTMLElement
  */
-function createElement(tag, props, children) {
+function createElement(tag, attr, children) {
   var element = document.createElement(tag);
-
-  for (propKey in props) {
-    if (props.hasOwnProperty(propKey) && props[propKey] !== undefined && props[propKey] !== null) {
-      element[propKey] = props[propKey];
+  for (attrKey in attr) {
+    if (attr.hasOwnProperty(attrKey) && attr[attrKey] !== undefined && attr[attrKey] !== null) {
+      element[attrKey] = attr[attrKey];
     }
   }
 
@@ -60,20 +67,17 @@ function createElement(tag, props, children) {
       if (Array.isArray(child)) {
         return appendRecursivelyArrayOfChildren(child, container);
       }
-
       var childrenElement = child !== undefined && child !== null && (
         isNode(child)
           ? child
           : document.createTextNode(child && child.toString())
       );
-
       childrenElement && container.appendChild(childrenElement);
     });
   }
 
   var arrayOfChildren = [].slice.call(arguments, 2);
   appendRecursivelyArrayOfChildren(arrayOfChildren, element);
-
   return element;
 }
 
@@ -83,17 +87,16 @@ function createElement(tag, props, children) {
  * @function createSVGElement
  *
  * @param tag: string
- * @param props: object
+ * @param attr: object
  * @param children: string | node | (string | node)[]
  *
  * @return SVGElement
  */
-function createSVGElement(tag, props, children) {
+function createSVGElement(tag, attr, children) {
   var element = document.createElementNS('http://www.w3.org/2000/svg', tag);
-
-  for (propKey in props) {
-    if (props.hasOwnProperty(propKey) && props[propKey] !== undefined && props[propKey] !== null) {
-      element.setAttribute(propKey, props[propKey]);
+  for (attrKey in attr) {
+    if (attr.hasOwnProperty(attrKey) && attr[attrKey] !== undefined && attr[attrKey] !== null) {
+      element.setAttribute(attrKey, attr[attrKey]);
     }
   }
 
@@ -102,20 +105,17 @@ function createSVGElement(tag, props, children) {
       if (Array.isArray(child)) {
         return appendRecursivelyArrayOfChildren(child, container);
       }
-
       var childrenElement = child !== undefined && child !== null && (
         isNode(child)
           ? child
           : document.createTextNode(child && child.toString())
       );
-
       childrenElement && container.appendChild(childrenElement);
     });
   }
 
   var arrayOfChildren = [].slice.call(arguments, 2);
   appendRecursivelyArrayOfChildren(arrayOfChildren, element);
-
   return element;
 }
 
@@ -138,7 +138,6 @@ function Event(name) {
 Event.prototype.addHandler = function (handler) {
   this._handlers.push(handler);
 };
-
 // Function of removing handlers
 Event.prototype.removeHandler = function (handler) {
   for (var i = 0; i < handlers.length; i++) {
@@ -148,14 +147,12 @@ Event.prototype.removeHandler = function (handler) {
     }
   }
 };
-
 // Call all handlers.
 Event.prototype.fire = function (eventArgs) {
   this._handlers.forEach(function (h) {
     h(eventArgs);
   });
 };
-
 var eventAggregator = (function () {
   var events = [];
 
@@ -168,17 +165,14 @@ var eventAggregator = (function () {
   return {
     dispatch: function (eventName, eventArgs) {
       var event = getEvent(eventName);
-
       if (!event) {
         event = new Event(eventName);
         events.push(event);
       }
       event.fire(eventArgs);
     },
-
     subscribe: function (eventName, handler) {
       var event = getEvent(eventName);
-
       if (!event) {
         event = new Event(eventName);
         events.push(event);
@@ -189,7 +183,7 @@ var eventAggregator = (function () {
 })();
 
 /**
- * @description Returns true if it is a DOM element
+ * @description Returns true if it is a DOM element.
  *
  * @function isElement
  *
@@ -198,15 +192,13 @@ var eventAggregator = (function () {
  * @return boolean
  */
 function isElement(obj) {
-  return (
-    typeof HTMLElement === 'object'
-      ? obj instanceof HTMLElement
-      : obj && typeof obj === 'object' && obj !== null && obj.nodeType === 1 && typeof obj.nodeName === 'string'
-  );
+  return typeof HTMLElement === 'object'
+    ? obj instanceof HTMLElement
+    : obj && typeof obj === 'object' && obj !== null && obj.nodeType === 1 && typeof obj.nodeName === 'string';
 }
 
 /**
- * @description Returns true if it is a NODE
+ * @description Returns true if it is a NODE.
  *
  * @function isNode
  *
@@ -215,11 +207,9 @@ function isElement(obj) {
  * @return boolean
  */
 function isNode(obj) {
-  return (
-    typeof Node === 'object'
-      ? obj instanceof Node
-      : obj && typeof obj === 'object' && typeof obj.nodeType === 'number' && typeof obj.nodeName === 'string'
-  );
+  return typeof Node === 'object'
+    ? obj instanceof Node
+    : obj && typeof obj === 'object' && typeof obj.nodeType === 'number' && typeof obj.nodeName === 'string';
 }
 
 /**
@@ -229,13 +219,13 @@ function isNode(obj) {
  *
  * @param obj: object
  *
- * @return {[key, value][]}
+ * @return {[[key, value]]}
  */
 function getEntriesFromObject(obj) {
-  if (!(obj instanceof Object) || obj === null) {
+  if (!isObject(obj)) {
     return [];
   }
-  return Object.keys(obj || {}).map(function (key) {
+  return Object.keys(obj).map(function (key) {
     return [key, obj[key]];
   });
 }
@@ -250,6 +240,9 @@ function getEntriesFromObject(obj) {
  * @return string
  */
 function stylesObjectToString(style) {
+  if (!isObject(style)) {
+    return '';
+  }
   return getEntriesFromObject(style).reduce((styleString, prop) => {
     prop[0] = prop[0].replace(/([A-Z])/g, function (matches) {
       return '-' + matches[0].toLowerCase();
@@ -258,3 +251,68 @@ function stylesObjectToString(style) {
   }, '');
 }
 
+/**
+ * @description Makes object attr to valid svg attributes.
+ *
+ * @function attrObjectToValidObject
+ *
+ * @param attr: object
+ *
+ * @return object
+ */
+function attrObjectToValidObject(attr) {
+  if (!isObject(attr)) {
+    return {};
+  }
+  return Object.keys(attr).reduce(function (acc, attrKey) {
+    var newKey = attrKey.replace(/([A-Z])/g, function (matches) {
+      return '-' + matches[0].toLowerCase();
+    });
+    acc[newKey] = attr[attrKey];
+    return acc;
+  }, {});
+}
+
+/**
+ * @description Merge right side object in left side object with saving params.
+ *
+ * @function mergeObjectSave;
+ *
+ * @param defaultObject: object
+ * @param configObject: object
+ *
+ * @return {object}
+ */
+function mergeObjectSave(defaultObject, configObject) {
+  if (!isObject(configObject)) {
+    return isObject(defaultObject) ? defaultObject : {};
+  }
+  if (!isObject(defaultObject)) {
+    return isObject(configObject) ? configObject : {};
+  }
+
+  function mergeLevelOfObject(defaultObject, configObject) {
+    return Object.keys(defaultObject)
+      .filter(function (defaultObjectKey, _i, defaultObjectKeys) {
+        return !Object.keys(configObject).some(function (configObjectKey) {
+          return defaultObjectKey === configObjectKey;
+        });
+      })
+      .concat(Object.keys(configObject))
+      .reduce(function (acc, defaultObjectKey) {
+        var defaultValue = defaultObject[defaultObjectKey];
+        var configValue = configObject[defaultObjectKey];
+        acc[defaultObjectKey] = isObject(defaultValue) && isObject(configValue)
+          ? mergeLevelOfObject(defaultValue, configValue)
+          : configValue !== undefined
+            ? configValue
+            : defaultValue;
+        return acc;
+      }, {});
+  }
+
+  return mergeLevelOfObject(
+    Object.assign({}, defaultObject),
+    Object.assign({}, configObject),
+  );
+}

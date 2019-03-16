@@ -3,23 +3,26 @@
  *
  * @function doChart
  *
- * @param config
+ * @param config: object
  *
  * @return void
  */
 function doChart(config) {
-  config = config || {};
-  config.chart = config.chart || chartDefaults.chart;
-  config.chart.renderTo = getChartContainer(config.chart.renderTo);
-  config.chart.width = config.chart.width || config.chart.renderTo.offsetWidth;
-  config.chart.height = config.chart.height || config.chart.renderTo.offsetHeight;
+  var newConfig = mergeObjectSave(chartDefaults, config);
+  newConfig.chart.renderTo = getChartContainer(newConfig.chart.renderTo);
+  newConfig.chart.width = newConfig.chart.width || newConfig.chart.renderTo.offsetWidth;
+  newConfig.chart.height = newConfig.chart.height || newConfig.chart.renderTo.offsetHeight;
 
   // Entry draw.
-  var chart = drawChart(config);
+  var chart = drawChart(newConfig);
 
   // Redraw on window resize.
   window.addEventListener('resize', function () {
-    drawChart(config);
+    var redrawConfig = mergeObjectSave(chartDefaults, config);
+    redrawConfig.chart.renderTo = getChartContainer(redrawConfig.chart.renderTo);
+    redrawConfig.chart.width = redrawConfig.chart.width || redrawConfig.chart.renderTo.offsetWidth;
+    redrawConfig.chart.height = redrawConfig.chart.height || redrawConfig.chart.renderTo.offsetHeight;
+    drawChart(redrawConfig);
   });
 }
 
@@ -28,48 +31,46 @@ function doChart(config) {
  *
  * @function drawChart
  *
- * @param config
+ * @param config: object
  *
  * @return chart: any
  */
 function drawChart(config) {
-  var container = config.chart.renderTo;
-  container.innerHTML = '';
+  config.chart.renderTo.innerHTML = '';
 
-  var chart = new Chart(config);
+  var chartic = new Chartic(config);
 
-  return chart;
+  return chartic;
 }
 
 /**
- * @description Chart class
+ * @description Chartic class.
  *
- * @constructor Chart
+ * @constructor Chartic
  *
- * @param config
+ * @param config: object
  */
-function Chart(config) {
+function Chartic(config) {
   this.config = config;
-  this.container = this.config.chart.renderTo;
 
   this.title = new ChartTitle(this.config.title, this.config);
   this.yAxis = new ChartYAxis(this.config.yAxis, this.config);
-  this.xAxis = new ChartXAxis(this.config.xAxis, this.config);
+  // this.xAxis = new ChartXAxis(this.config.xAxis, this.config);
 
-  this.svg = createSVGElement(
-    'svg',
-    {
-      xmlns: 'http://www.w3.org/2000/svg',
-      width: this.config.chart.width,
-      height: this.config.chart.height,
-      viewBox: '0 0 ' + this.config.chart.width + ' ' + this.config.chart.height,
-    },
+  var svgAttr = {
+    xmlns: 'http://www.w3.org/2000/svg',
+    width: this.config.chart.width,
+    height: this.config.chart.height,
+    viewBox: '0 0 ' + this.config.chart.width + ' ' + this.config.chart.height,
+  };
+
+  this.svg = createSVGElement('svg', svgAttr, [
     this.config.title && this.title.containers.titleGroup,
     this.config.yAxis && this.yAxis.containers.yAxisGroup,
-    this.config.xAxis && this.xAxis.containers.xAxisGroup,
-  );
+    // this.config.xAxis && this.xAxis.containers.xAxisGroup,
+  ]);
 
-  this.container.appendChild(this.svg);
+  this.config.chart.renderTo.appendChild(this.svg);
 }
 
 /**
@@ -77,82 +78,63 @@ function Chart(config) {
  *
  * @constructor ChartTitle
  *
- * @param title: {
- *   text: string,
- *   align: 'left' | 'center' | 'right',
- *   verticalAlign: 'top' | 'center' | 'bottom',
- *   width: number,
- *   height: number,
- *   x: number,
- *   y: number,
- *   backgroundColor: string,
- *   spacing: {
- *     top: number,
- *     left: number,
- *     right: number,
- *     bottom: number,
- *   },
- *   style: {
- *     color: string,
- *     fontSize: number,
- *     fontWeight: number | string,
- *   },
- * }
+ * @param title {{
+ *  x: number,
+ *  y: number,
+ *  text: string,
+ *  backgroundColor: string,
+ *  spacing: {
+ *   top: number,
+ *   left: number,
+ *   right: number,
+ *   bottom: number,
+ *  },
+ *  attr: {
+ *   fill: string,
+ *   textAnchor: 'start' | 'middle' | 'end',
+ *   dominantBaseline: 'hanging' | 'middle' | 'baseline',
+ *  },
+ *  style: {
+ *   fontSize: number
+ *   fontWeight: number | string,
+ *  },
+ * }}
  * @param config: object
  */
 function ChartTitle(title, config) {
-  if (!title) {
-    return;
-  }
-
-  this.config = config;
   this.title = title;
+  this.config = config;
 
-  var style = Object.assign({}, chartDefaults.title.style, this.title.style);
+  var spacingCoords = getCoordsFromSpacing(this.title.spacing, {
+    width: this.config.chart.width,
+    height: this.title.spacing.top + this.title.spacing.bottom + this.title.style.fontSize * appConfig.defaultLineHeight,
+  });
 
-  this.width = this.title.width || this.config.chart.width;
-  this.height = this.title.height || style.fontSize * appConfig.defaultLineHeight;
+  var fontSizeHeight = (this.title.style.fontSize * appConfig.defaultLineHeight - this.title.style.fontSize) / 2;
+  var xTextAlign = getXFromTextHAlign(this.title.attr.textAnchor, spacingCoords);
+  var yTextAlign = getYFromTextVAlign(this.title.attr.dominantBaseline, spacingCoords, fontSizeHeight);
 
-  var alignH = getTextAlign(this.title.align, (chartDefaults.title || {}).align);
-  var alignV = getTextVerticalAlign(this.title.verticalAlign, (chartDefaults.title || {}).verticalAlign);
-  var spacingCoords = getCoordsFromSpacing(this.title.spacing, { width: this.width, height: this.height });
-  var fillRect = this.title.backgroundColor || chartDefaults.title.backgroundColor;
-  var xTextAlign = (this.title.x || 0) + alignH === 'middle'
-    ? spacingCoords.x1 + spacingCoords.innerWidth / 2
-    : alignH === 'end'
-      ? spacingCoords.x1 + spacingCoords.innerWidth
-      : spacingCoords.x1;
-  var yTextAlign = (this.title.y || 0) + alignV === 'middle'
-    ? spacingCoords.y1 + spacingCoords.innerHeight / 2
-    : alignV === 'baseline'
-      ? spacingCoords.y1 + spacingCoords.innerHeight - (style.fontSize * appConfig.defaultLineHeight - style.fontSize) / 2
-      : spacingCoords.y1;
-
-  var titleRectProps = {
-    fill: fillRect,
+  var titleRectAttr = {
     x: spacingCoords.x1,
     y: spacingCoords.y1,
     width: spacingCoords.innerWidth,
     height: spacingCoords.innerHeight,
+    fill: this.title.backgroundColor,
   };
 
-  var titleTextProps = {
-    style: stylesObjectToString(style),
-    fill: style.color,
-    x: xTextAlign,
-    y: yTextAlign,
-    'text-anchor': alignH,
-    'dominant-baseline': alignV,
-  };
+  var titleTextAttr = Object.assign({}, attrObjectToValidObject(this.title.attr), {
+    x: this.title.x + xTextAlign,
+    y: this.title.y + yTextAlign,
+    style: stylesObjectToString(this.title.style),
+  });
 
   this.containers = {};
-  this.containers.titleRect = createSVGElement('rect', titleRectProps);
-  this.containers.titleTspan = createSVGElement('tspan', null, this.title.text);
-  this.containers.titleText = createSVGElement('text', titleTextProps, this.containers.titleTspan);
-  this.containers.titleGroup = createSVGElement('g', null,
+  this.containers.titleRect = createSVGElement('rect', titleRectAttr);
+  this.containers.titleText = createSVGElement('text', titleTextAttr, this.title.text);
+  this.containers.titleGroup = createSVGElement('g', null, [
     this.containers.titleRect,
     this.containers.titleText,
-  );
+  ]);
 }
 
 /**
@@ -160,49 +142,74 @@ function ChartTitle(title, config) {
  *
  * @constructor ChartYAxis
  *
- * @param yAxis: {{
+ * @param yAxis {{
+ *  ticksAmount: number,
+ *  spacing: {
+ *   top: number,
+ *   left: number,
+ *   right: number,
+ *   bottom: number
+ *  },
+ *  gridLine: {
+ *   x: number,
+ *   y: number,
+ *   attr: {
+ *    stroke: string,
+ *    strokeWidth: number,
+ *    strokeDasharray: string,
+ *   },
+ *   style: {
+ *
+ *   },
+ *  },
+ *  line: {
+ *   x: number,
+ *   y: number,
+ *   attr: {
+ *    stroke: string,
+ *    strokeWidth: number,
+ *    strokeDasharray: string,
+ *   },
+ *   style: {
+ *
+ *   }
+ *  },
+ *  labels: {
+ *   x: number,
+ *   y: number,
  *   spacing: {
- *     top: number,
- *     left: number,
- *     right: number,
- *     bottom: number,
+ *    top: number,
+ *    left: number,
+ *    right: number,
+ *    bottom: number
  *   },
- *   line: {
- *     x: number,
- *     y: number,
- *     width: number,
- *     color: string,
+ *   attr: {
+ *    fill: string,
+ *    textAnchor: 'start' | 'middle' | 'end',
+ *    dominantBaseline: 'hanging' | 'middle' | 'baseline',
  *   },
- *   labels: {
- *     x: number,
- *     y: number,
- *     color: string,
- *     fontSize: number,
- *     fontWeight: number | string,
- *     align: 'start' | 'middle' | 'end',
- *     verticalAlign: 'hanging' | 'middle' | 'baseline',
+ *   style: {
+ *    fontSize: number,
+ *    fontWeight: number | string,
  *   },
+ *  }
  * }}
  * @param config: object
  */
 function ChartYAxis(yAxis, config) {
-  if (!yAxis || !Array.isArray(config.series)) {
-    return;
-  }
-
   this.config = config;
-  this.yAxis = yAxis || {};
-  this.yAxis.line = this.yAxis.line || {};
-  this.yAxis.labels = this.yAxis.labels || {};
+  this.yAxis = yAxis;
 
   this.yAxisLine = new ChartYAxisLine(this.yAxis.line, this.config);
+  this.yAxisLineGrids = new ChartYAxisLineGrids(this.yAxis.line, this.config);
   this.yAxisLabels = new ChartYAxisLabels(this.yAxis.labels, this.config);
 
   this.containers = {};
-  this.containers.yAxisGroup = createSVGElement('g',null,
+  this.containers.yAxisGroup = createSVGElement('g', null, [
     this.yAxisLine.containers && this.yAxisLine.containers.yAxisLine,
+    this.yAxisLineGrids.containers && this.yAxisLineGrids.containers.yAxisLineGrids,
     this.yAxisLabels.containers && this.yAxisLabels.containers.yAxisLabels,
-  );
+  ]);
 }
 
 /**
@@ -210,41 +217,73 @@ function ChartYAxis(yAxis, config) {
  *
  * @constructor ChartYAxisLine
  *
- * @param yAxisLine: {
- *   x: number,
- *   y: number,
- *   width: number,
- *   color: string,
- * },
+ * @param yAxisLine {{
+ *  x: number,
+ *  y: number,
+ *  attr: {
+ *   stroke: string,
+ *   strokeWidth: number,
+ *   strokeDasharray: string,
+ *  },
+ *  style: {
+ *
+ *  }
+ * }},
  * @param config: object
  */
 function ChartYAxisLine(yAxisLine, config) {
-  if (!yAxisLine) {
-    return;
-  }
-
   this.config = config;
-  this.yAxisLine = yAxisLine || {};
-  this.yAxis = this.config.yAxis || {};
-  this.yAxis.spacing = Object.assign({}, this.yAxis.spacing, (chartDefaults.yAxis || {}).spacing);
-  this.title = this.config.title || {};
-  this.title.spacing = Object.assign({}, this.title.spacing, (chartDefaults.title || {}).spacing);
-  this.title.style = Object.assign({}, chartDefaults.title.style, this.title.style);
-  this.title.height = this.title.height || (this.title.style.fontSize * appConfig.defaultLineHeight + (this.title.spacing.top || 0) + (this.title.spacing.bottom || 0));
+  this.yAxisLine = yAxisLine;
 
-  var spacingCoords = getCoordsFromSpacing(this.yAxis.spacing, { width: this.config.chart.width, height: this.config.chart.height - this.title.height });
-  var dOfPath = 'M ' + spacingCoords.x1 + ',' + (spacingCoords.y1 + this.title.height) + ' v ' + spacingCoords.y2;
-  var stroke = this.yAxisLine.color || ((chartDefaults.yAxis || {}).line || {}).color;
-  var strokeWidth = (this.yAxisLine.width || ((chartDefaults.yAxis || {}).line || {}).width) + 'px';
+  var innerContentCoords = getCoordsUnderTitle(config, this.config.yAxis.spacing);
+  var dOfPath = 'M ' + innerContentCoords.x1 + ',' + innerContentCoords.y1 + ' v ' + innerContentCoords.y2;
 
-  var yAxisLineProps = {
+  var yAxisLineAttr = Object.assign({}, attrObjectToValidObject(this.yAxisLine.attr), {
     d: dOfPath,
-    stroke: stroke,
-    'stroke-width': strokeWidth,
-  };
+    style: stylesObjectToString(this.yAxisLine.style),
+  });
 
   this.containers = {};
-  this.containers.yAxisLine = createSVGElement('path', yAxisLineProps);
+  this.containers.yAxisLine = createSVGElement('path', yAxisLineAttr);
+}
+
+/**
+ * @description Create yAxis line grids.
+ *
+ * @constructor ChartYAxisLineGrids
+ *
+ * @param yAxisLineGrids {{
+ *  x: number,
+ *  y: number,
+ *  attr: {
+ *   stroke: string,
+ *   strokeWidth: number,
+ *   strokeDasharray: string,
+ *  },
+ *  style: {
+ *
+ *  },
+ * }}
+ * @param config: object
+ */
+function ChartYAxisLineGrids(yAxisLineGrids, config) {
+  this.config = config;
+  this.yAxisLineGrids = yAxisLineGrids;
+
+  var innerContentCoords = getCoordsUnderTitle(config, this.config.yAxis.spacing);
+
+  var yAxisLineGridsArray = new Array(this.config.yAxis.ticksAmount).fill(0).map(function (_tickVal, index) {
+    var gridLineY = innerContentCoords.y2 - index * (innerContentCoords.innerHeight / this.config.yAxis.ticksAmount);
+    var dOfPath = 'M ' + innerContentCoords.x1 + ',' + gridLineY + ' h ' + innerContentCoords.x2;
+    var yAxisLineGridsAttr = Object.assign({}, attrObjectToValidObject(this.yAxisLineGrids.attr), {
+      d: dOfPath,
+      style: stylesObjectToString(this.yAxisLineGrids.style),
+    });
+    return createSVGElement('path', yAxisLineGridsAttr)
+  }.bind(this));
+
+  this.containers = {};
+  this.containers.yAxisLineGrids = createSVGElement('g', null, yAxisLineGridsArray);
 }
 
 /**
@@ -252,69 +291,56 @@ function ChartYAxisLine(yAxisLine, config) {
  *
  * @constructor ChartYAxisLabels
  *
- * @param yAxisLabels: {
- *   x: number,
- *   y: number,
- *   align: 'start' | 'middle' | 'end',
- *   verticalAlign: 'hanging' | 'middle' | 'baseline',
- *   style: {
- *     color: string,
- *     fontSize: number,
- *     fontWeight: number | string,
- *   }
- * },
+ * @param yAxisLabels {{
+ *  x: number,
+ *  y: number,
+ *  spacing: {
+ *   top: number,
+ *   left: number,
+ *   right: number,
+ *   bottom: number
+ *  },
+ *  attr: {
+ *   fill: string,
+ *   textAnchor: 'start' | 'middle' | 'end',
+ *   dominantBaseline: 'hanging' | 'middle' | 'baseline',
+ *  },
+ *  style: {
+ *   fontSize: number,
+ *   fontWeight: number | string,
+ *  },
+ * }},
  * @param config: object
  */
 function ChartYAxisLabels(yAxisLabels, config) {
-  if (!yAxisLabels) {
-    return;
-  }
-
   this.config = config;
-  this.config.series = config.series;
-  this.yAxisLabels = yAxisLabels || {};
-  this.yAxisLabels.style = yAxisLabels.style || {};
-  this.yAxis = this.config.yAxis || {};
-  this.yAxis.spacing = Object.assign({}, this.yAxis.spacing, (chartDefaults.yAxis || {}).spacing);
-  this.title = this.config.title || {};
-  this.title.spacing = Object.assign({}, this.title.spacing, (chartDefaults.title || {}).spacing);
-  this.title.style = Object.assign({}, chartDefaults.title.style, this.title.style);
-  this.title.height = this.title.height || (this.title.style.fontSize * appConfig.defaultLineHeight + (this.title.spacing.top || 0) + (this.title.spacing.bottom || 0));
+  this.yAxisLineLabels = yAxisLabels;
 
-  var alignH = getTextAlign(this.yAxisLabels.align, ((chartDefaults.yAxis || {}).labels || {}).align);
-  var alignV = getTextVerticalAlign(this.yAxisLabels.verticalAlign, ((chartDefaults.yAxis || {}).labels || {}).verticalAlign);
-  var spacingCoords = getCoordsFromSpacing(this.yAxis.spacing, { width: this.config.chart.width, height: this.config.chart.height - this.title.height });
-
-  var minYMaxY = getMinMaxOfSeriesData(this.config.series, 'y');
-  var stepY = (minYMaxY.max - Math.min(minYMaxY.min, 0)) / 5;
-  var labelsData = new Array(6).fill(0).map(function (n, i) {
-    return +(Math.min(minYMaxY.min, 0) + (i * stepY)).toFixed(2);
+  var innerContentCoords = getCoordsUnderTitle(config, this.config.yAxis.spacing);
+  var innerLabelsContentCoords = getCoordsUnderTitle(config, {
+    top: innerContentCoords.y1 + this.config.yAxis.labels.spacing.top,
+    left: innerContentCoords.x1 + this.config.yAxis.labels.spacing.left,
+    right: innerContentCoords.x2 + this.config.yAxis.labels.spacing.right,
+    bottom: innerContentCoords.y2 + this.config.yAxis.labels.spacing.bottom,
   });
 
-  var yAxisLabelsText = labelsData.map(function (labelText, i) {
-    var fillTextProps = this.yAxisLabels.style.color || (((chartDefaults.yAxis || {}).labels || {}).style || {}).color;
-    var xTextProps = (spacingCoords.x1 + (this.yAxisLabels.x || 0)) || ((chartDefaults.yAxis || {}.labels || {}).x || 0);
-    var yTextProps = (this.title.height + (this.yAxisLabels.y || 0)) || ((chartDefaults.yAxis || {}.labels || {}).y || 0);
-    var steppedYTextProp = (yTextProps + spacingCoords.y2) - i * spacingCoords.y2 / 5;
+  console.log(innerLabelsContentCoords)
 
-
-    var textProps = {
-      style: stylesObjectToString(this.yAxisLabels.style),
-      fill: fillTextProps,
-      x: xTextProps,
-      y: steppedYTextProp,
-      'text-anchor': alignH,
-      'dominant-baseline': alignV,
-    };
-
-    var tspan = createSVGElement('tspan',null, labelText);
-    var text = createSVGElement('text', textProps, tspan);
-
-    return text;
+  var yAxisLineLabelsArray = new Array(this.config.yAxis.ticksAmount).fill(0).map(function (_tickVal, index) {
+    var minMaxY = getMinMaxOfSeriesData(this.config.series);
+    var labelTextStep = (minMaxY.max - Math.min(minMaxY.min, 0)) / this.config.yAxis.ticksAmount;
+    var labelText = Math.round(labelTextStep * index);
+    var labelY = innerLabelsContentCoords.y2 - index * (innerLabelsContentCoords.y2 - innerLabelsContentCoords.y1) / this.config.yAxis.ticksAmount;
+    var yAxisLineGridsAttr = Object.assign({}, attrObjectToValidObject(this.yAxisLineLabels.attr), {
+      x: innerLabelsContentCoords.x1 + this.yAxisLineLabels.x,
+      y: labelY + this.yAxisLineLabels.y,
+      style: stylesObjectToString(this.yAxisLineLabels.style),
+    });
+    return createSVGElement('text', yAxisLineGridsAttr, labelText);
   }.bind(this));
 
   this.containers = {};
-  this.containers.yAxisLabels = yAxisLabelsText;
+  this.containers.yAxisLabels = yAxisLineLabelsArray;
 }
 
 /**
