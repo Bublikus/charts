@@ -8,8 +8,8 @@ var themeDay = {
   xLabels: colors.darkGrey,
   yLabels: colors.darkGrey,
 
-  xLines: colors.lightGrey,
-  yLines: colors.lightGrey,
+  xAxisLine: colors.lightGrey,
+  yAxisLine: colors.lightGrey,
 
   xCursorLine: colors.regularGrey,
   yCursorLine: colors.regularGrey,
@@ -28,8 +28,8 @@ var themeNight = {
   xLabels: colors.darkGrey,
   yLabels: colors.darkGrey,
 
-  xLines: colors.lightGrey,
-  yLines: colors.lightGrey,
+  xAxisLine: colors.lightGrey,
+  yAxisLine: colors.lightGrey,
 
   xCursorLine: colors.regularGrey,
   yCursorLine: colors.regularGrey,

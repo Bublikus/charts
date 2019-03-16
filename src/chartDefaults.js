@@ -1,73 +1,24 @@
 /**
  * @description Default model of Chartic API.
+ * Here we define all properties we have for safe getting after merging with user config.
  *
  * @type {{
- * chart: {
- *  width: number,
- *  height: number,
- *  renderTo: string | HTMLElement,
- * },
- * title: {
- *  x: number,
- *  y: number,
- *  text: string,
- *  backgroundColor: string,
- *  spacing: {
- *   top: number,
- *   left: number,
- *   right: number,
- *   bottom: number,
+ *  chart: {
+ *   width: number,
+ *   height: number,
+ *   renderTo: string | HTMLElement,
  *  },
- *  attr: {
- *   fill: string,
- *   textAnchor: 'start' | 'middle' | 'end',
- *   dominantBaseline: 'hanging' | 'middle' | 'baseline',
- *  },
- *  style: {
- *   fontSize: number
- *   fontWeight: number | string,
- *  },
- * },
- * xAxis: {
- *  ticksAmount: number,
- *  spacing: {
- *   top: number,
- *   left: number,
- *   right: number,
- *   bottom: number
- *  },
- *  gridLine: {
+ *  title: {
+ *   enabled: boolean,
  *   x: number,
  *   y: number,
- *   attr: {
- *    stroke: string,
- *    strokeWidth: number,
- *    strokeDasharray: string,
- *   },
- *   style: {
- *
- *   }
- *  },
- *  line: {
- *   x: number,
- *   y: number,
- *   attr: {
- *    stroke: string,
- *    strokeWidth: number,
- *    strokeDasharray: string,
- *   },
- *   style: {
- *
- *   }
- *  },
- *  labels: {
- *   x: number,
- *   y: number,
+ *   text: string,
+ *   backgroundColor: string,
  *   spacing: {
  *    top: number,
  *    left: number,
  *    right: number,
- *    bottom: number
+ *    bottom: number,
  *   },
  *   attr: {
  *    fill: string,
@@ -75,72 +26,143 @@
  *    dominantBaseline: 'hanging' | 'middle' | 'baseline',
  *   },
  *   style: {
- *    fontSize: number,
+ *    fontSize: number
  *    fontWeight: number | string,
  *   },
- *  }
- * },
- * yAxis: {
- *  ticksAmount: number,
- *  spacing: {
- *   top: number,
- *   left: number,
- *   right: number,
- *   bottom: number
  *  },
- *  gridLine: {
- *   x: number,
- *   y: number,
- *   attr: {
- *    stroke: string,
- *    strokeWidth: number,
- *    strokeDasharray: string,
- *   },
- *   style: {
- *
- *   }
- *  },
- *  line: {
- *   x: number,
- *   y: number,
- *   attr: {
- *    stroke: string,
- *    strokeWidth: number,
- *    strokeDasharray: string,
- *   },
- *   style: {
- *
- *   }
- *  },
- *  labels: {
- *   x: number,
- *   y: number,
+ *  xAxis: {
+ *   enabled: boolean,
+ *   ticksAmount: number,
  *   spacing: {
  *    top: number,
  *    left: number,
  *    right: number,
  *    bottom: number
  *   },
- *   attr: {
- *    fill: string,
- *    textAnchor: 'start' | 'middle' | 'end',
- *    dominantBaseline: 'hanging' | 'middle' | 'baseline',
- *   },
- *   style: {
- *    fontSize: number,
- *    fontWeight: number | string,
- *   },
- *  }
- * },
- * legend: {
+ *   gridLine: {
+ *    enabled: boolean,
+ *    x: number,
+ *    y: number,
+ *    attr: {
+ *     stroke: string,
+ *     strokeWidth: number,
+ *     strokeDasharray: string,
+ *    },
+ *    style: {
  *
- * },
- * series: [
- *   {
- *     x: number,
- *     y: number,
+ *    }
+ *   },
+ *   line: {
+ *    enabled: boolean,
+ *    x: number,
+ *    y: number,
+ *    attr: {
+ *     stroke: string,
+ *     strokeWidth: number,
+ *     strokeDasharray: string,
+ *    },
+ *    style: {
+ *
+ *    }
+ *   },
+ *   labels: {
+ *    enabled: boolean,
+ *    x: number,
+ *    y: number,
+ *    formatter(step: number, index: number, config: object): (number | string | Node),
+ *    spacing: {
+ *     top: number,
+ *     left: number,
+ *     right: number,
+ *     bottom: number
+ *    },
+ *    attr: {
+ *     fill: string,
+ *     textAnchor: 'start' | 'middle' | 'end',
+ *     dominantBaseline: 'hanging' | 'middle' | 'baseline',
+ *    },
+ *    style: {
+ *     fontSize: number,
+ *     fontWeight: number | string,
+ *    },
  *   }
- * ],
+ *  },
+ *  yAxis: {
+ *   enabled: boolean,
+ *   ticksAmount: number,
+ *   spacing: {
+ *    top: number,
+ *    left: number,
+ *    right: number,
+ *    bottom: number
+ *   },
+ *   gridLine: {
+ *    enabled: boolean,
+ *    x: number,
+ *    y: number,
+ *    attr: {
+ *     stroke: string,
+ *     strokeWidth: number,
+ *     strokeDasharray: string,
+ *    },
+ *    style: {
+ *
+ *    }
+ *   },
+ *   line: {
+ *    enabled: boolean,
+ *    x: number,
+ *    y: number,
+ *    attr: {
+ *     stroke: string,
+ *     strokeWidth: number,
+ *     strokeDasharray: string,
+ *    },
+ *    style: {
+ *
+ *    }
+ *   },
+ *   labels: {
+ *    enabled: boolean,
+ *    x: number,
+ *    y: number,
+ *    formatter(step: number, index: number, config: object): (number | string | Node),
+ *    spacing: {
+ *     top: number,
+ *     left: number,
+ *     right: number,
+ *     bottom: number
+ *    },
+ *    attr: {
+ *     fill: string,
+ *     textAnchor: 'start' | 'middle' | 'end',
+ *     dominantBaseline: 'hanging' | 'middle' | 'baseline',
+ *    },
+ *    style: {
+ *     fontSize: number,
+ *     fontWeight: number | string,
+ *    },
+ *   }
+ *  },
+ *  legend: {
+ *   enabled: boolean,
+ *  },
+ *  series: {
+ *   type: 'line',
+ *   data: {
+ *    x: number,
+ *    y: number,
+ *    info: object,
+ *    attr: {
+ *     stroke: string,
+ *     strokeWidth: number,
+ *     strokeDasharray: string,
+ *    },
+ *    style: {
+ *
+ *    },
+ *   }[],
+ *  }[],
  * }}
  */
 const chartDefaults = {
@@ -150,9 +172,10 @@ const chartDefaults = {
     renderTo: null,
   },
   title: {
+    enabled: true,
     x: 0,
     y: 0,
-    text: '',
+    text: 'Chart title',
     backgroundColor: 'transparent',
     spacing: {
       top: 15,
@@ -171,14 +194,16 @@ const chartDefaults = {
     }
   },
   xAxis: {
+    enabled: true,
     ticksAmount: 6,
     spacing: {
-      top: 15,
+      top: 0,
       left: 30,
       right: 30,
-      bottom: 15,
+      bottom: 50,
     },
     gridLine: {
+      enabled: false,
       x: 0,
       y: 0,
       attr: {
@@ -191,6 +216,7 @@ const chartDefaults = {
       },
     },
     line: {
+      enabled: true,
       x: 0,
       y: 0,
       attr: {
@@ -203,17 +229,21 @@ const chartDefaults = {
       },
     },
     labels: {
+      enabled: true,
       x: 0,
       y: 0,
+      formatter: function(step, index, config) {
+        return step;
+      },
       spacing: {
         top: 0,
         left: 0,
         right: 0,
-        bottom: 0,
+        bottom: -25,
       },
       attr: {
-        textAnchor: 'start',
-        dominantBaseline: 'baseline',
+        textAnchor: 'middle',
+        dominantBaseline: 'middle',
       },
       style: {
         color: 'grey',
@@ -223,14 +253,16 @@ const chartDefaults = {
     },
   },
   yAxis: {
+    enabled: true,
     ticksAmount: 6,
     spacing: {
       top: 15,
       left: 30,
       right: 30,
-      bottom: 15,
+      bottom: 50,
     },
     gridLine: {
+      enabled: true,
       x: 0,
       y: 0,
       attr: {
@@ -243,6 +275,7 @@ const chartDefaults = {
       },
     },
     line: {
+      enabled: true,
       x: 0,
       y: 0,
       attr: {
@@ -255,8 +288,12 @@ const chartDefaults = {
       },
     },
     labels: {
+      enabled: true,
       x: 0,
       y: 0,
+      formatter: function(step, index, config) {
+        return step;
+      },
       spacing: {
         top: 0,
         left: 0,
@@ -274,6 +311,8 @@ const chartDefaults = {
       },
     },
   },
-  legend: {},
+  legend: {
+    enabled: true,
+  },
   series: [],
 };

@@ -1,3 +1,4 @@
+// Get chart data from JSON file.
 getJson('chart_data.json').then(start);
 
 /**
@@ -12,15 +13,19 @@ getJson('chart_data.json').then(start);
 function start(chartsData) {
   makeContainers();
 
-  var config = transformChartDataToConfig(chartsData);
+  var mainChartConfig = transformChartDataToMainChartConfig(chartsData[0]);
+  var subChartConfig = transformChartDataToSubChartConfig(chartsData[0]);
 
   // Redraw on switch theme.
   eventAggregator.subscribe('switchTheme', function () {
-    config = transformChartDataToConfig(chartsData);
-    doChart(config);
+    mainChartConfig = transformChartDataToMainChartConfig(chartsData[0]);
+    subChartConfig = transformChartDataToSubChartConfig(chartsData[0]);
+    doChart(mainChartConfig, chartDefaults);
+    doChart(subChartConfig, chartDefaults);
   });
 
-  doChart(config);
+  doChart(mainChartConfig, chartDefaults);
+  doChart(subChartConfig, chartDefaults);
 }
 
 /**
@@ -28,7 +33,7 @@ function start(chartsData) {
  *
  * @function transformChartDataToConfig
  *
- * @param chartsData
+ * @param chartsData: object
  *
  * @return {{
  *  chart: {
@@ -37,6 +42,7 @@ function start(chartsData) {
  *   renderTo: string | HTMLElement,
  *  },
  *  title: {
+ *   enabled: boolean,
  *   x: number,
  *   y: number,
  *   text: string,
@@ -58,6 +64,7 @@ function start(chartsData) {
  *   },
  *  },
  *  xAxis: {
+ *   enabled: boolean,
  *   ticksAmount: number,
  *   spacing: {
  *    top: number,
@@ -66,6 +73,7 @@ function start(chartsData) {
  *    bottom: number
  *   },
  *   gridLine: {
+ *    enabled: boolean,
  *    x: number,
  *    y: number,
  *    attr: {
@@ -78,6 +86,7 @@ function start(chartsData) {
  *    }
  *   },
  *   line: {
+ *    enabled: boolean,
  *    x: number,
  *    y: number,
  *    attr: {
@@ -90,8 +99,10 @@ function start(chartsData) {
  *    }
  *   },
  *   labels: {
+ *    enabled: boolean,
  *    x: number,
  *    y: number,
+ *    formatter(step: number, index: number, config: object): (number | string | Node),
  *    spacing: {
  *     top: number,
  *     left: number,
@@ -110,6 +121,7 @@ function start(chartsData) {
  *   }
  *  },
  *  yAxis: {
+ *   enabled: boolean,
  *   ticksAmount: number,
  *   spacing: {
  *    top: number,
@@ -118,6 +130,7 @@ function start(chartsData) {
  *    bottom: number
  *   },
  *   gridLine: {
+ *    enabled: boolean,
  *    x: number,
  *    y: number,
  *    attr: {
@@ -130,6 +143,7 @@ function start(chartsData) {
  *    }
  *   },
  *   line: {
+ *    enabled: boolean,
  *    x: number,
  *    y: number,
  *    attr: {
@@ -142,8 +156,10 @@ function start(chartsData) {
  *    }
  *   },
  *   labels: {
+ *    enabled: boolean,
  *    x: number,
  *    y: number,
+ *    formatter(step: number, index: number, config: object): (number | string | Node),
  *    spacing: {
  *     top: number,
  *     left: number,
@@ -162,19 +178,30 @@ function start(chartsData) {
  *   }
  *  },
  *  legend: {
- *
+ *   enabled: boolean,
  *  },
- *  series: [{
+ *  series: {
  *   type: 'line',
  *   data: {
  *    x: number,
  *    y: number,
- *   },
- *  }],
+ *    info: object,
+ *    attr: {
+ *     stroke: string,
+ *     strokeWidth: number,
+ *     strokeDasharray: string,
+ *    },
+ *    style: {
+ *
+ *    },
+ *   }[],
+ *  }[]
  * }}
  */
-function transformChartDataToConfig(chartsData) {
+function transformChartDataToMainChartConfig(chartsData) {
   var theme = store.theme.styles;
+
+  var series = getSeries(chartsData);
 
   return {
     chart: {
@@ -191,22 +218,43 @@ function transformChartDataToConfig(chartsData) {
     xAxis: {
       line: {
         attr: {
-         stroke: theme.xLines,
-        }
+         stroke: theme.xAxisLine,
+        },
+      },
+      gridLine: {
+        attr: {
+          stroke: 'transparent',
+        },
       },
       labels: {
+        spacing: {
+          left: 10,
+          right: 10,
+        },
         attr: {
           fill: theme.xLabels,
         },
+        formatter: function (step) {
+          return formatDate(step);
+        }
       }
     },
     yAxis: {
+      spacing: {
+        top: 30,
+      },
       line: {
         attr: {
-          stroke: theme.yLines,
+          stroke: 'transparent',
         }
       },
+      gridLine: {
+        attr: {
+          stroke: theme.xAxisLine,
+        },
+      },
       labels: {
+        y: -10,
         attr: {
           fill: theme.yLabels,
         },
@@ -215,28 +263,289 @@ function transformChartDataToConfig(chartsData) {
     legend: {
 
     },
-    series: [{
-      type: 'line',
-      data: [
-        {
-          y: 10,
-        },
-        {
-          y: 80,
-        },
-        {
-          y: 23,
-        },
-        {
-          y: 127,
-        },
-        {
-          y: 3,
-        },
-        {
-          y: 45,
-        }
-      ]
-    }],
+    series: series,
   };
+}
+
+/**
+ * @description Transforms data to chart config.
+ *
+ * @function transformChartDataToConfig
+ *
+ * @param chartsData: object
+ *
+ * @return {{
+ *  chart: {
+ *   width: number,
+ *   height: number,
+ *   renderTo: string | HTMLElement,
+ *  },
+ *  title: {
+ *   enabled: boolean,
+ *   x: number,
+ *   y: number,
+ *   text: string,
+ *   backgroundColor: string,
+ *   spacing: {
+ *    top: number,
+ *    left: number,
+ *    right: number,
+ *    bottom: number,
+ *   },
+ *   attr: {
+ *    fill: string,
+ *    textAnchor: 'start' | 'middle' | 'end',
+ *    dominantBaseline: 'hanging' | 'middle' | 'baseline',
+ *   },
+ *   style: {
+ *    fontSize: number
+ *    fontWeight: number | string,
+ *   },
+ *  },
+ *  xAxis: {
+ *   enabled: boolean,
+ *   ticksAmount: number,
+ *   spacing: {
+ *    top: number,
+ *    left: number,
+ *    right: number,
+ *    bottom: number
+ *   },
+ *   gridLine: {
+ *    enabled: boolean,
+ *    x: number,
+ *    y: number,
+ *    attr: {
+ *     stroke: string,
+ *     strokeWidth: number,
+ *     strokeDasharray: string,
+ *    },
+ *    style: {
+ *
+ *    }
+ *   },
+ *   line: {
+ *    enabled: boolean,
+ *    x: number,
+ *    y: number,
+ *    attr: {
+ *     stroke: string,
+ *     strokeWidth: number,
+ *     strokeDasharray: string,
+ *    },
+ *    style: {
+ *
+ *    }
+ *   },
+ *   labels: {
+ *    enabled: boolean,
+ *    x: number,
+ *    y: number,
+ *    formatter(step: number, index: number, config: object): (number | string | Node),
+ *    spacing: {
+ *     top: number,
+ *     left: number,
+ *     right: number,
+ *     bottom: number
+ *    },
+ *    attr: {
+ *     fill: string,
+ *     textAnchor: 'start' | 'middle' | 'end',
+ *     dominantBaseline: 'hanging' | 'middle' | 'baseline',
+ *    },
+ *    style: {
+ *     fontSize: number,
+ *     fontWeight: number | string,
+ *    },
+ *   }
+ *  },
+ *  yAxis: {
+ *   enabled: boolean,
+ *   ticksAmount: number,
+ *   spacing: {
+ *    top: number,
+ *    left: number,
+ *    right: number,
+ *    bottom: number
+ *   },
+ *   gridLine: {
+ *    enabled: boolean,
+ *    x: number,
+ *    y: number,
+ *    attr: {
+ *     stroke: string,
+ *     strokeWidth: number,
+ *     strokeDasharray: string,
+ *    },
+ *    style: {
+ *
+ *    }
+ *   },
+ *   line: {
+ *    enabled: boolean,
+ *    x: number,
+ *    y: number,
+ *    attr: {
+ *     stroke: string,
+ *     strokeWidth: number,
+ *     strokeDasharray: string,
+ *    },
+ *    style: {
+ *
+ *    }
+ *   },
+ *   labels: {
+ *    enabled: boolean,
+ *    x: number,
+ *    y: number,
+ *    formatter(step: number, index: number, config: object): (number | string | Node),
+ *    spacing: {
+ *     top: number,
+ *     left: number,
+ *     right: number,
+ *     bottom: number
+ *    },
+ *    attr: {
+ *     fill: string,
+ *     textAnchor: 'start' | 'middle' | 'end',
+ *     dominantBaseline: 'hanging' | 'middle' | 'baseline',
+ *    },
+ *    style: {
+ *     fontSize: number,
+ *     fontWeight: number | string,
+ *    },
+ *   }
+ *  },
+ *  legend: {
+ *   enabled: boolean,
+ *  },
+ *  series: {
+ *   type: 'line',
+ *   data: {
+ *    x: number,
+ *    y: number,
+ *    info: object,
+ *    attr: {
+ *     stroke: string,
+ *     strokeWidth: number,
+ *     strokeDasharray: string,
+ *    },
+ *    style: {
+ *
+ *    },
+ *   }[],
+ *  }[],
+ * }}
+ */
+function transformChartDataToSubChartConfig(chartsData) {
+  var theme = store.theme.styles;
+
+  var series = getSeries(chartsData);
+
+  return {
+    chart: {
+      renderTo: document.getElementById('subChart'),
+    },
+    title: {
+      enabled: false,
+    },
+    xAxis: {
+      enabled: false,
+    },
+    yAxis: {
+      enabled: false,
+    },
+    legend: {
+      enabled: false,
+    },
+    series: series,
+  };
+}
+
+/**
+ * @description Transform chart data to valid series.
+ *
+ * @function getSeries
+ *
+ * @param chartData {{
+ *  colors: {
+ *   [lineName]: string,
+ *  },
+ *  columns: [
+ *   string,
+ *   {...number},
+ *  ][],
+ *  names: {
+ *   [lineName]: string,
+ *  },
+ *  types: {
+ *   [lineName]: 'x' | string,
+ *  },
+ * }}
+ *
+ * @return {{
+ *  type: 'line',
+ *  data: {
+ *   x: number,
+ *   y: number,
+ *   info: object,
+ *   attr: {
+ *    stroke: string,
+ *    strokeWidth: number,
+ *    strokeDasharray: string,
+ *   },
+ *   style: {
+ *
+ *   },
+ *  }[],
+ * }[]}
+ */
+function getSeries(chartData) {
+  var nameKeys = Object.keys(chartData.names)
+    .map(function (nameKey) {
+      return chartData.names[nameKey].replace('#', '');
+    });
+
+  var series = nameKeys.map(function (nameKey) {
+    var keyOfData = 'y' + nameKey;
+
+    var type = chartData.types[keyOfData];
+    var name = chartData.names[keyOfData];
+    var color = chartData.colors[keyOfData];
+    var x = chartData.columns
+      .filter(function (column) {
+        return column[0] === 'x';
+      })[0]
+      .filter(function (data) {
+        return data !== 'x';
+      });
+    var y = chartData.columns
+      .filter(function (column) {
+        return column[0] === keyOfData;
+      })[0]
+      .filter(function (data) {
+        return data !== keyOfData;
+      });
+    var data = new Array(Math.min(x.length, y.length))
+      .fill(0)
+      .map(function (_val, i) {
+        return {
+          x: x[i],
+          y: y[i],
+          info: {
+            name: name,
+          },
+          attr: {
+            stroke: color,
+          }
+        };
+      });
+
+    return {
+      type: type,
+      data: data,
+    };
+  });
+
+  return series;
 }

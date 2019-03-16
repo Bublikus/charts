@@ -35,12 +35,25 @@ function getJson(pathToJsonFile) {
  *
  * @function isObject
  *
- * @param obj
+ * @param obj: any
  *
  * @return {boolean}
  */
 function isObject(obj) {
-  return (obj instanceof Object) && obj !== null && !Array.isArray(obj);
+  return typeof obj === 'object' && obj !== null && !Array.isArray(obj);
+}
+
+/**
+ * @description Check is property boolean.
+ *
+ * @function isBoolean
+ *
+ * @param obj: any
+ *
+ * @return {boolean}
+ */
+function isBoolean(obj) {
+  return typeof obj === 'boolean';
 }
 
 /**
@@ -67,7 +80,7 @@ function createElement(tag, attr, children) {
       if (Array.isArray(child)) {
         return appendRecursivelyArrayOfChildren(child, container);
       }
-      var childrenElement = child !== undefined && child !== null && (
+      var childrenElement = !isBoolean(child) && child !== undefined && child !== null && (
         isNode(child)
           ? child
           : document.createTextNode(child && child.toString())
@@ -105,7 +118,7 @@ function createSVGElement(tag, attr, children) {
       if (Array.isArray(child)) {
         return appendRecursivelyArrayOfChildren(child, container);
       }
-      var childrenElement = child !== undefined && child !== null && (
+      var childrenElement = !isBoolean(child) && child !== undefined && child !== null && (
         isNode(child)
           ? child
           : document.createTextNode(child && child.toString())
@@ -125,7 +138,7 @@ function createSVGElement(tag, attr, children) {
  * @object eventAggregator
  *
  * @return {{
- *   dispatch(eventName: string, eventArgs: any): void,
+ *   dispatch(eventName: string, eventArgs: object): void,
  *   subscribe(eventName: string, handler: Function): void,
  * }}
  */
@@ -293,10 +306,11 @@ function mergeObjectSave(defaultObject, configObject) {
 
   function mergeLevelOfObject(defaultObject, configObject) {
     return Object.keys(defaultObject)
-      .filter(function (defaultObjectKey, _i, defaultObjectKeys) {
-        return !Object.keys(configObject).some(function (configObjectKey) {
-          return defaultObjectKey === configObjectKey;
-        });
+      .filter(function (defaultObjectKey) {
+        return !Object.keys(configObject)
+          .some(function (configObjectKey) {
+            return defaultObjectKey === configObjectKey;
+          });
       })
       .concat(Object.keys(configObject))
       .reduce(function (acc, defaultObjectKey) {
@@ -315,4 +329,21 @@ function mergeObjectSave(defaultObject, configObject) {
     Object.assign({}, defaultObject),
     Object.assign({}, configObject),
   );
+}
+
+/**
+ * @description Format date from timestamp.
+ *
+ * @function formatDate
+ *
+ * @param timestamp: number
+ *
+ * @return {string}
+ */
+function formatDate(timestamp) {
+  var date = new Date(timestamp);
+  var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  var day = date.getDate();
+  var monthIndex = date.getMonth();
+  return monthNames[monthIndex] + ' ' + day;
 }

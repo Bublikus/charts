@@ -12,7 +12,7 @@ function getChartContainer(container) {
     : container;
 
   if (!isElement(chartContainer)) {
-    throw new Error('"renderTo" property is invalid. Expected string selector or DOM element');
+    throw new Error('"renderTo" property is invalid. Expected string selector or DOM element.');
   }
 
   return chartContainer;
@@ -37,6 +37,9 @@ function getMinMaxOfSeriesData(series, prop) {
       min: 0,
       max: 0,
     };
+  }
+  if (!prop) {
+    console.error(new Error('You need to define "prop" in "getMinMaxOfSeriesData" function.'));
   }
   var min = Math.min.apply(null,
     series.map(function (seriesItem) {
@@ -202,18 +205,20 @@ function getYFromTextVAlign(dominantBaseline, spacingCoords, fontSizeHeight) {
  * }}
  */
 function getCoordsUnderTitle(config, spacing) {
-  var titleHeight = config.title.spacing.top + config.title.spacing.bottom + config.title.style.fontSize * appConfig.defaultLineHeight;
-  var yAxisLineSpacingCoords = getCoordsFromSpacing(spacing, {
+  var titleHeight = config.title.enabled
+    ? config.title.spacing.top + config.title.spacing.bottom + config.title.style.fontSize * appConfig.defaultLineHeight
+    : 0;
+  var spacingCoords = getCoordsFromSpacing(spacing, {
     width: config.chart.width,
     height: config.chart.height,
   });
-  yAxisLineSpacingCoords.y1 += titleHeight;
+  var y1 = spacingCoords.y1 + titleHeight;
   return {
-    x1: yAxisLineSpacingCoords.x1,
-    y1: yAxisLineSpacingCoords.y1,
-    x2: yAxisLineSpacingCoords.x2,
-    y2: yAxisLineSpacingCoords.y2,
-    innerWidth: yAxisLineSpacingCoords.x2 - yAxisLineSpacingCoords.x1,
-    innerHeight: yAxisLineSpacingCoords.y2 - yAxisLineSpacingCoords.y1,
+    x1: spacingCoords.x1,
+    y1: y1,
+    x2: spacingCoords.x2,
+    y2: spacingCoords.y2,
+    innerWidth: spacingCoords.x2 - spacingCoords.x1,
+    innerHeight: spacingCoords.y2 - y1,
   };
 }
