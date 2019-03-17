@@ -573,7 +573,59 @@ function ChartXAxisLabels(xAxisLabels, config) {
 // ================================================== CHART SERIES ================================================= //
 // ================================================================================================================= //
 
+/**
+ * @description Draw chart series.
+ *
+ * @constructor ChartSeries
+ *
+ * @param series {
+ *   type: 'line',
+ *   data: {
+ *    x: number,
+ *    y: number,
+ *    info: object,
+ *    attr: {
+ *     stroke: string,
+ *     strokeWidth: number,
+ *     strokeDasharray: string,
+ *    },
+ *    style: {
+ *
+ *    },
+ *   }[],
+ *  }[],
+ * }
+ * @param config: object
+ */
 function ChartSeries(series, config) {
+  this.config = config;
+  this.series = series;
+
+  var seriesLineType = this.series.filter(function (seriesItem) {
+    return seriesItem.type = 'line';
+  });
+
+  this.seriesLine = new ChartSeriesLine(seriesLineType, this.config);
+
+  this.containers = {};
+  this.containers.seriesGroup = createSVGElement('g', null, [
+    this.seriesLine.containers && this.seriesLine.containers.seriesLineGroup,
+  ]);
+}
+
+/**
+ * @description Draw LINE type chart series.
+ *
+ * @constructor ChartSeriesLine
+ *
+ * @param series: object
+ * @param config: object
+ */
+function ChartSeriesLine(series, config) {
+  if (!series || !series.length) {
+    return;
+  }
+
   this.config = config;
   this.series = series;
   this.areaOptions = this.config.areaOptions;
@@ -610,7 +662,7 @@ function ChartSeries(series, config) {
           var y2 = areaCoords.y2 - areaCoords.innerHeight * ((dataWithCoords.y2 - minMaxY.min) / (minMaxY.max - minMaxY.min));
 
           var defaultAttr = attrObjectToValidObject({
-            strokeWidth: 3,
+            strokeWidth: 2,
           });
           var configAttr = attrObjectToValidObject(dataWithCoords.attr);
           var generatedAttr = {
@@ -623,5 +675,9 @@ function ChartSeries(series, config) {
     }.bind(this));
 
   this.containers = {};
-  this.containers.seriesGroup = createSVGElement('g', null, chartSeries);
+  this.containers.seriesLineGroup = createSVGElement('g', null, chartSeries);
 }
+
+// ================================================================================================================= //
+// ================================================ CHART SELECT AREA ============================================== //
+// ================================================================================================================= //
