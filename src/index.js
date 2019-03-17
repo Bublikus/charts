@@ -6,7 +6,7 @@ getJson('chart_data.json').then(start);
  *
  * @function start
  *
- * @param chartsData
+ * @param chartsData: object
  *
  * @return void
  */
@@ -180,7 +180,8 @@ function start(chartsData) {
  *  legend: {
  *   enabled: boolean,
  *  },
- *  areaOptions: {
+ *  selectArea: {
+ *   type: 'x',
  *   spacing: {
  *    top: number,
  *    left: number,
@@ -190,6 +191,12 @@ function start(chartsData) {
  *  },
  *  series: {
  *   type: 'line',
+ *   spacing: {
+ *    top: number,
+ *    left: number,
+ *    right: number,
+ *    bottom: number
+ *   },
  *   data: {
  *    x: number,
  *    y: number,
@@ -226,7 +233,7 @@ function transformChartDataToMainChartConfig(chartsData) {
     xAxis: {
       line: {
         attr: {
-         stroke: theme.xAxisLine,
+          stroke: theme.xAxisLine,
         },
       },
       gridLine: {
@@ -244,8 +251,8 @@ function transformChartDataToMainChartConfig(chartsData) {
         },
         formatter: function (step) {
           return formatDate(step);
-        }
-      }
+        },
+      },
     },
     yAxis: {
       spacing: {
@@ -254,7 +261,7 @@ function transformChartDataToMainChartConfig(chartsData) {
       line: {
         attr: {
           stroke: 'transparent',
-        }
+        },
       },
       gridLine: {
         attr: {
@@ -266,17 +273,22 @@ function transformChartDataToMainChartConfig(chartsData) {
         attr: {
           fill: theme.yLabels,
         },
-      }
+      },
     },
-    areaOptions: {
+    selectArea: {
       spacing: {
         top: 30,
       },
     },
-    legend: {
-
-    },
-    series: series,
+    legend: {},
+    series: series
+      .map(function (seriesItem) {
+        return Object.assign({}, seriesItem, {
+          spacing: {
+            top: 30,
+          },
+        });
+      }),
   };
 }
 
@@ -432,7 +444,8 @@ function transformChartDataToMainChartConfig(chartsData) {
  *  legend: {
  *   enabled: boolean,
  *  },
- *  areaOptions: {
+ *  selectArea: {
+ *   type: 'x',
  *   spacing: {
  *    top: number,
  *    left: number,
@@ -442,6 +455,12 @@ function transformChartDataToMainChartConfig(chartsData) {
  *  },
  *  series: {
  *   type: 'line',
+ *   spacing: {
+ *    top: number,
+ *    left: number,
+ *    right: number,
+ *    bottom: number
+ *   },
  *   data: {
  *    x: number,
  *    y: number,
@@ -479,13 +498,22 @@ function transformChartDataToSubChartConfig(chartsData) {
     legend: {
       enabled: false,
     },
-    areaOptions: {
+    selectArea: {
+      type: 'x',
       spacing: {
         top: 10,
         bottom: 10,
       },
     },
-    series: series,
+    series: series
+      .map(function (seriesItem) {
+        return Object.assign({}, seriesItem, {
+          spacing: {
+            top: 10,
+            bottom: 10,
+          },
+        });
+      }),
   };
 }
 
@@ -512,6 +540,12 @@ function transformChartDataToSubChartConfig(chartsData) {
  *
  * @return {{
  *  type: 'line',
+ *  spacing: {
+ *   top: number,
+ *   left: number,
+ *   right: number,
+ *   bottom: number
+ *  },
  *  data: {
  *   x: number,
  *   y: number,
@@ -533,46 +567,45 @@ function getSeries(chartData) {
       return chartData.names[nameKey].replace('#', '');
     });
 
-  var series = nameKeys.map(function (nameKey) {
-    var keyOfData = 'y' + nameKey;
+  return nameKeys
+    .map(function (nameKey) {
+      var keyOfData = 'y' + nameKey;
 
-    var type = chartData.types[keyOfData];
-    var name = chartData.names[keyOfData];
-    var color = chartData.colors[keyOfData];
-    var x = chartData.columns
-      .filter(function (column) {
-        return column[0] === 'x';
-      })[0]
-      .filter(function (data) {
-        return data !== 'x';
-      });
-    var y = chartData.columns
-      .filter(function (column) {
-        return column[0] === keyOfData;
-      })[0]
-      .filter(function (data) {
-        return data !== keyOfData;
-      });
-    var data = new Array(Math.min(x.length, y.length))
-      .fill(0)
-      .map(function (_val, i) {
-        return {
-          x: x[i],
-          y: y[i],
-          info: {
-            name: name,
-          },
-          attr: {
-            stroke: color,
-          }
-        };
-      });
+      var type = chartData.types[keyOfData];
+      var name = chartData.names[keyOfData];
+      var color = chartData.colors[keyOfData];
+      var x = chartData.columns
+        .filter(function (column) {
+          return column[0] === 'x';
+        })[0]
+        .filter(function (data) {
+          return data !== 'x';
+        });
+      var y = chartData.columns
+        .filter(function (column) {
+          return column[0] === keyOfData;
+        })[0]
+        .filter(function (data) {
+          return data !== keyOfData;
+        });
+      var data = new Array(Math.min(x.length, y.length))
+        .fill(0)
+        .map(function (_val, i) {
+          return {
+            x: x[i],
+            y: y[i],
+            info: {
+              name: name,
+            },
+            attr: {
+              stroke: color,
+            },
+          };
+        });
 
-    return {
-      type: type,
-      data: data,
-    };
-  });
-
-  return series;
+      return {
+        type: type,
+        data: data,
+      };
+    });
 }

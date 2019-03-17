@@ -44,6 +44,19 @@ function isObject(obj) {
 }
 
 /**
+ * @description Check is property array.
+ *
+ * @function isArray
+ *
+ * @param obj: any
+ *
+ * @return {boolean}
+ */
+function isArray(obj) {
+  return Array.isArray(obj);
+}
+
+/**
  * @description Check is property boolean.
  *
  * @function isBoolean
@@ -305,6 +318,26 @@ function mergeObjectSave(defaultObject, configObject) {
   }
 
   function mergeLevelOfObject(defaultObject, configObject) {
+    // Merge defaultObject Array first child with every configObject Array item.
+    if (Array.isArray(defaultObject)) {
+      if (!Array.isArray(configObject)) {
+        return defaultObject;
+      }
+      var defaultArrayItem = defaultObject[0];
+      return configObject
+        .map(function (configObjectArrayItem) {
+          return (
+            isArray(defaultArrayItem) || isObject(defaultArrayItem)
+          ) && (
+            isArray(configObjectArrayItem) || isObject(configObjectArrayItem)
+          )
+            ? mergeLevelOfObject(defaultArrayItem, configObjectArrayItem)
+            : configObjectArrayItem !== undefined
+              ? configObjectArrayItem
+              : defaultArrayItem;
+        });
+    }
+    // Merge defaultObject object child with every configObject object item.
     return Object.keys(defaultObject)
       .filter(function (defaultObjectKey) {
         return !Object.keys(configObject)
@@ -316,7 +349,11 @@ function mergeObjectSave(defaultObject, configObject) {
       .reduce(function (acc, defaultObjectKey) {
         var defaultValue = defaultObject[defaultObjectKey];
         var configValue = configObject[defaultObjectKey];
-        acc[defaultObjectKey] = isObject(defaultValue) && isObject(configValue)
+        acc[defaultObjectKey] = (
+          isArray(defaultValue) || isObject(defaultValue)
+        ) && (
+          isArray(configValue) || isObject(configValue)
+        )
           ? mergeLevelOfObject(defaultValue, configValue)
           : configValue !== undefined
             ? configValue
@@ -342,7 +379,7 @@ function mergeObjectSave(defaultObject, configObject) {
  */
 function formatDate(timestamp) {
   var date = new Date(timestamp);
-  var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   var day = date.getDate();
   var monthIndex = date.getMonth();
   return monthNames[monthIndex] + ' ' + day;

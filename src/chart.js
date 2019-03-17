@@ -61,9 +61,10 @@ function Chartic(config) {
   this.config = config;
 
   this.title = new ChartTitle(this.config.title, this.config);
-  this.yAxis = new ChartYAxis(this.config.yAxis, this.config);
   this.xAxis = new ChartXAxis(this.config.xAxis, this.config);
+  this.yAxis = new ChartYAxis(this.config.yAxis, this.config);
   this.series = new ChartSeries(this.config.series, this.config);
+  this.selectArea = new ChartSelectArea(this.config.selectArea, this.config);
 
   var svgAttr = {
     xmlns: 'http://www.w3.org/2000/svg',
@@ -73,10 +74,11 @@ function Chartic(config) {
   };
 
   this.svg = createSVGElement('svg', svgAttr, [
-    this.config.title.enabled && this.config.title && this.title.containers.titleGroup,
-    this.config.yAxis.enabled && this.config.yAxis && this.yAxis.containers.yAxisGroup,
-    this.config.xAxis.enabled && this.config.xAxis && this.xAxis.containers.xAxisGroup,
     this.series.containers.seriesGroup,
+    this.config.title.enabled && this.title.containers && this.title.containers.titleGroup,
+    this.config.xAxis.enabled && this.xAxis.containers && this.xAxis.containers.xAxisGroup,
+    this.config.yAxis.enabled && this.yAxis.containers && this.yAxis.containers.yAxisGroup,
+    !!this.config.selectArea.type && this.selectArea.containers && this.selectArea.containers.selectAreaGroup,
   ]);
 
   this.config.chart.renderTo.appendChild(this.svg);
@@ -580,6 +582,12 @@ function ChartXAxisLabels(xAxisLabels, config) {
  *
  * @param series {
  *   type: 'line',
+ *   spacing: {
+ *    top: number,
+ *    left: number,
+ *    right: number,
+ *    bottom: number
+ *   },
  *   data: {
  *    x: number,
  *    y: number,
@@ -628,33 +636,33 @@ function ChartSeriesLine(series, config) {
 
   this.config = config;
   this.series = series;
-  this.areaOptions = this.config.areaOptions;
-
-  var areaCoords = getCoordsUnderTitle(this.config, this.areaOptions.spacing);
 
   var chartSeries = this.series
     .map(function (seriesItem) {
 
-      return ((seriesItem || {}).data || [])
-        .reduce(function (acc, dataItem, i, dataArray) {
-          if (!dataItem || (i === dataArray.length - 1)) {
+      return Object.assign({}, seriesItem, {
+        data: ((seriesItem || {}).data || [])
+          .reduce(function (acc, dataItem, i, dataArray) {
+            if (!dataItem || (i === dataArray.length - 1)) {
+              return acc;
+            }
+            var newData = Object.assign({}, dataItem, {
+              x1: dataItem.x,
+              y1: dataItem.y,
+              x2: dataArray[i + 1].x,
+              y2: dataArray[i + 1].y,
+            });
+            acc.push(newData);
             return acc;
-          }
-          var newData = Object.assign({}, dataItem, {
-            x1: dataItem.x,
-            y1: dataItem.y,
-            x2: dataArray[i + 1].x,
-            y2: dataArray[i + 1].y,
-          });
-          acc.push(newData);
-          return acc;
-        }, []);
+          }, []),
+      });
     })
     .map(function (seriesWithCoords) {
       var minMaxX = getMinMaxOfSeriesData(this.config.series, 'x');
       var minMaxY = getMinMaxOfSeriesData(this.config.series, 'y');
+      var areaCoords = getCoordsUnderTitle(this.config, seriesWithCoords.spacing);
 
-      return seriesWithCoords
+      return seriesWithCoords.data
         .map(function (dataWithCoords) {
           var x1 = areaCoords.x1 + areaCoords.innerWidth * ((dataWithCoords.x1 - minMaxX.min) / (minMaxX.max - minMaxX.min));
           var y1 = areaCoords.y2 - areaCoords.innerHeight * ((dataWithCoords.y1 - minMaxY.min) / (minMaxY.max - minMaxY.min));
@@ -681,3 +689,27 @@ function ChartSeriesLine(series, config) {
 // ================================================================================================================= //
 // ================================================ CHART SELECT AREA ============================================== //
 // ================================================================================================================= //
+
+/**
+ * @description Create select area.
+ *
+ * @constructor ChartSelectArea
+ *
+ * @param selectArea {{
+ *  type: 'x',
+ *  spacing: {
+ *   top: number,
+ *   left: number,
+ *   right: number,
+ *   bottom: number
+ *  },
+ * }}
+ * @param config: object
+ */
+function ChartSelectArea(selectArea, config) {
+  this.config = config;
+  this.selectArea = selectArea;
+
+  this.containers = {};
+  this.containers.selectAreaGroup = createSVGElement('g', null);
+}

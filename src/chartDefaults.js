@@ -147,7 +147,8 @@
  *  legend: {
  *   enabled: boolean,
  *  },
- *  areaOptions: {
+ *  selectArea: {
+ *   type: 'x',
  *   spacing: {
  *    top: number,
  *    left: number,
@@ -157,6 +158,12 @@
  *  },
  *  series: {
  *   type: 'line',
+ *   spacing: {
+ *    top: number,
+ *    left: number,
+ *    right: number,
+ *    bottom: number
+ *   },
  *   data: {
  *    x: number,
  *    y: number,
@@ -322,7 +329,8 @@ var chartDefaults = {
   legend: {
     enabled: true,
   },
-  areaOptions: {
+  selectArea: {
+    type: '',
     spacing: {
       top: 15,
       left: 30,
@@ -330,5 +338,12 @@ var chartDefaults = {
       bottom: 50,
     },
   },
-  series: [],
+  series: [{
+    spacing: {
+      top: 15,
+      left: 30,
+      right: 30,
+      bottom: 50,
+    },
+  }],
 };
