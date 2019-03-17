@@ -360,7 +360,9 @@ var chartDefaults = {
       right: 30,
       bottom: 50,
     },
-    onSelect: function () {}
+    onSelect: function (min, max) {
+      console.log(min, max);
+    },
   },
   series: [{
     spacing: {

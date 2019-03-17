@@ -724,33 +724,33 @@ function ChartSelectArea(selectArea, config) {
   this.config = config;
   this.selectArea = selectArea;
 
-  var verticalBorderdWidth = this.selectArea.type.search('y') !== -1 ? 7 : 2;
-  var horizontalBorderdWidth = this.selectArea.type.search('x') !== -1 ? 7 : 2;
+  var verticalBorderWidth = this.selectArea.type.search('y') !== -1 ? 7 : 2;
+  var horizontalBorderWidth = this.selectArea.type.search('x') !== -1 ? 7 : 2;
 
   var innerContentCoords = getCoordsUnderTitle(this.config, this.selectArea.spacing);
 
   var borderTopAreaCoords = {
-    x1: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x1) + horizontalBorderdWidth,
+    x1: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x1) + horizontalBorderWidth,
     y1: innerContentCoords.y1 + (innerContentCoords.innerHeight * this.selectArea.ranges.y1),
-    x2: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x2) - horizontalBorderdWidth,
-    y2: innerContentCoords.y1 + (innerContentCoords.innerHeight * this.selectArea.ranges.y1) + verticalBorderdWidth,
+    x2: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x2) - horizontalBorderWidth,
+    y2: innerContentCoords.y1 + (innerContentCoords.innerHeight * this.selectArea.ranges.y1) + verticalBorderWidth,
   };
   var borderLeftAreaCoords = {
     x1: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x1),
     y1: innerContentCoords.y1 + (innerContentCoords.innerHeight * this.selectArea.ranges.y1),
-    x2: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x1) + horizontalBorderdWidth,
+    x2: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x1) + horizontalBorderWidth,
     y2: innerContentCoords.y1 + (innerContentCoords.innerHeight * this.selectArea.ranges.y2),
   };
   var borderRightAreaCoords = {
-    x1: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x2) - horizontalBorderdWidth,
+    x1: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x2) - horizontalBorderWidth,
     y1: innerContentCoords.y1 + (innerContentCoords.innerHeight * this.selectArea.ranges.y1),
     x2: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x2),
     y2: innerContentCoords.y1 + (innerContentCoords.innerHeight * this.selectArea.ranges.y2),
   };
   var borderBottomAreaCoords = {
-    x1: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x1) + horizontalBorderdWidth,
-    y1: innerContentCoords.y1 + (innerContentCoords.innerHeight * this.selectArea.ranges.y2) - verticalBorderdWidth,
-    x2: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x2) - horizontalBorderdWidth,
+    x1: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x1) + horizontalBorderWidth,
+    y1: innerContentCoords.y1 + (innerContentCoords.innerHeight * this.selectArea.ranges.y2) - verticalBorderWidth,
+    x2: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x2) - horizontalBorderWidth,
     y2: innerContentCoords.y1 + (innerContentCoords.innerHeight * this.selectArea.ranges.y2),
   };
 
