@@ -605,9 +605,9 @@ function ChartSeries(series, config) {
       return seriesWithCoords
         .map(function (dataWithCoords) {
           var x1 = areaCoords.x1 + areaCoords.innerWidth * ((dataWithCoords.x1 - minMaxX.min) / (minMaxX.max - minMaxX.min));
-          var y1 = areaCoords.y1 + areaCoords.innerHeight * ((dataWithCoords.y1 - minMaxY.min) / (minMaxY.max - minMaxY.min));
+          var y1 = areaCoords.y2 - areaCoords.innerHeight * ((dataWithCoords.y1 - minMaxY.min) / (minMaxY.max - minMaxY.min));
           var x2 = areaCoords.x1 + areaCoords.innerWidth * ((dataWithCoords.x2 - minMaxX.min) / (minMaxX.max - minMaxX.min));
-          var y2 = areaCoords.y1 + areaCoords.innerHeight * ((dataWithCoords.y2 - minMaxY.min) / (minMaxY.max - minMaxY.min));
+          var y2 = areaCoords.y2 - areaCoords.innerHeight * ((dataWithCoords.y2 - minMaxY.min) / (minMaxY.max - minMaxY.min));
 
           var defaultAttr = attrObjectToValidObject({
             strokeWidth: 3,
