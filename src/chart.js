@@ -696,20 +696,167 @@ function ChartSeriesLine(series, config) {
  * @constructor ChartSelectArea
  *
  * @param selectArea {{
- *  type: 'x',
- *  spacing: {
- *   top: number,
- *   left: number,
- *   right: number,
- *   bottom: number
- *  },
- * }}
+ *   type: 'x',
+ *   selectAttr: {
+ *    fill: string,
+ *    stroke: string,
+ *   },
+ *   bgAttr: {
+ *    fill: string,
+ *   },
+ *   ranges: {
+ *    x1: number,
+ *    y1: number,
+ *    x2: number,
+ *    y2: number,
+ *   },
+ *   spacing: {
+ *    top: number,
+ *    left: number,
+ *    right: number,
+ *    bottom: number
+ *   },
+ *   onSelect(min: number, max: number, config: object): void,
+ *  }}
  * @param config: object
  */
 function ChartSelectArea(selectArea, config) {
   this.config = config;
   this.selectArea = selectArea;
 
+  var verticalBorderdWidth = this.selectArea.type.search('y') !== -1 ? 7 : 2;
+  var horizontalBorderdWidth = this.selectArea.type.search('x') !== -1 ? 7 : 2;
+
+  var innerContentCoords = getCoordsUnderTitle(this.config, this.selectArea.spacing);
+
+  var borderTopAreaCoords = {
+    x1: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x1) + horizontalBorderdWidth,
+    y1: innerContentCoords.y1 + (innerContentCoords.innerHeight * this.selectArea.ranges.y1),
+    x2: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x2) - horizontalBorderdWidth,
+    y2: innerContentCoords.y1 + (innerContentCoords.innerHeight * this.selectArea.ranges.y1) + verticalBorderdWidth,
+  };
+  var borderLeftAreaCoords = {
+    x1: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x1),
+    y1: innerContentCoords.y1 + (innerContentCoords.innerHeight * this.selectArea.ranges.y1),
+    x2: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x1) + horizontalBorderdWidth,
+    y2: innerContentCoords.y1 + (innerContentCoords.innerHeight * this.selectArea.ranges.y2),
+  };
+  var borderRightAreaCoords = {
+    x1: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x2) - horizontalBorderdWidth,
+    y1: innerContentCoords.y1 + (innerContentCoords.innerHeight * this.selectArea.ranges.y1),
+    x2: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x2),
+    y2: innerContentCoords.y1 + (innerContentCoords.innerHeight * this.selectArea.ranges.y2),
+  };
+  var borderBottomAreaCoords = {
+    x1: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x1) + horizontalBorderdWidth,
+    y1: innerContentCoords.y1 + (innerContentCoords.innerHeight * this.selectArea.ranges.y2) - verticalBorderdWidth,
+    x2: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x2) - horizontalBorderdWidth,
+    y2: innerContentCoords.y1 + (innerContentCoords.innerHeight * this.selectArea.ranges.y2),
+  };
+
+  var overlayTopAreaCoords = {
+    x1: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x1),
+    y1: innerContentCoords.y1,
+    x2: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x2),
+    y2: innerContentCoords.y1 + (innerContentCoords.innerHeight * this.selectArea.ranges.y1),
+  };
+  var overlayLeftAreaCoords = {
+    x1: innerContentCoords.x1,
+    y1: innerContentCoords.y1,
+    x2: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x1),
+    y2: innerContentCoords.y2,
+  };
+  var overlayRightAreaCoords = {
+    x1: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x2),
+    y1: innerContentCoords.y1,
+    x2: innerContentCoords.x2,
+    y2: innerContentCoords.y2,
+  };
+  var overlayBottomAreaCoords = {
+    x1: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x1),
+    y1: innerContentCoords.y1 + (innerContentCoords.innerHeight * this.selectArea.ranges.y2),
+    x2: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x2),
+    y2: innerContentCoords.y2,
+  };
+
+  var borderRectTop = Object.assign({}, this.selectArea.selectAttr, {
+    x: borderTopAreaCoords.x1,
+    y: borderTopAreaCoords.y1,
+    width: borderTopAreaCoords.x2 - borderTopAreaCoords.x1,
+    height: borderTopAreaCoords.y2 - borderTopAreaCoords.y1,
+  });
+  var borderRectLeft = Object.assign({}, this.selectArea.selectAttr, {
+    x: borderLeftAreaCoords.x1,
+    y: borderLeftAreaCoords.y1,
+    width: borderLeftAreaCoords.x2 - borderLeftAreaCoords.x1,
+    height: borderLeftAreaCoords.y2 - borderLeftAreaCoords.y1,
+  });
+  var borderRectRight = Object.assign({}, this.selectArea.selectAttr, {
+    x: borderRightAreaCoords.x1,
+    y: borderRightAreaCoords.y1,
+    width: borderRightAreaCoords.x2 - borderRightAreaCoords.x1,
+    height: borderRightAreaCoords.y2 - overlayRightAreaCoords.y1,
+  });
+  var borderRectBottom = Object.assign({}, this.selectArea.selectAttr, {
+    x: borderBottomAreaCoords.x1,
+    y: borderBottomAreaCoords.y1,
+    width: borderBottomAreaCoords.x2 - borderBottomAreaCoords.x1,
+    height: borderBottomAreaCoords.y2 - borderBottomAreaCoords.y1,
+  });
+
+  var bgRectTop = Object.assign({}, this.selectArea.bgAttr, {
+    x: overlayTopAreaCoords.x1,
+    y: overlayTopAreaCoords.y1,
+    width: overlayTopAreaCoords.x2 - overlayTopAreaCoords.x1,
+    height: overlayTopAreaCoords.y2 - overlayTopAreaCoords.y1,
+  });
+  var bgRectLeft = Object.assign({}, this.selectArea.bgAttr, {
+    x: overlayLeftAreaCoords.x1,
+    y: overlayLeftAreaCoords.y1,
+    width: overlayLeftAreaCoords.x2 - overlayLeftAreaCoords.x1,
+    height: overlayLeftAreaCoords.y2 - overlayLeftAreaCoords.y1,
+  });
+  var bgRectRight = Object.assign({}, this.selectArea.bgAttr, {
+    x: overlayRightAreaCoords.x1,
+    y: overlayRightAreaCoords.y1,
+    width: overlayRightAreaCoords.x2 - overlayRightAreaCoords.x1,
+    height: overlayRightAreaCoords.y2 - overlayRightAreaCoords.y1,
+  });
+  var bgRectBottom = Object.assign({}, this.selectArea.bgAttr, {
+    x: overlayBottomAreaCoords.x1,
+    y: overlayBottomAreaCoords.y1,
+    width: overlayBottomAreaCoords.x2 - overlayBottomAreaCoords.x1,
+    height: overlayBottomAreaCoords.y2 - overlayBottomAreaCoords.y1,
+  });
+
   this.containers = {};
-  this.containers.selectAreaGroup = createSVGElement('g', null);
+
+  this.containers.borderTop = createSVGElement('rect', borderRectTop);
+  this.containers.borderLeft = createSVGElement('rect', borderRectLeft);
+  this.containers.borderRight = createSVGElement('rect', borderRectRight);
+  this.containers.borderBottom = createSVGElement('rect', borderRectBottom);
+
+  this.containers.bgTop = createSVGElement('rect', bgRectTop);
+  this.containers.bgLeft = createSVGElement('rect', bgRectLeft);
+  this.containers.bgRight = createSVGElement('rect', bgRectRight);
+  this.containers.bgBottom = createSVGElement('rect', bgRectBottom);
+
+  this.containers.borderGroup = createSVGElement('g', null,[
+    this.containers.borderTop,
+    this.containers.borderLeft,
+    this.containers.borderRight,
+    this.containers.borderBottom,
+  ]);
+
+  this.containers.bgGroup = createSVGElement('g', null,[
+    this.containers.bgTop,
+    this.containers.bgLeft,
+    this.containers.bgRight,
+    this.containers.bgBottom,
+  ]);
+
+  this.containers.selectAreaGroup = createSVGElement('g', null, [
+    this.containers.bgGroup,
+    this.containers.borderGroup,
+  ]);
 }

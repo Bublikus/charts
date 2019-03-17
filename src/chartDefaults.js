@@ -149,12 +149,26 @@
  *  },
  *  selectArea: {
  *   type: 'x',
+ *   selectAttr: {
+ *    fill: string,
+ *    stroke: string,
+ *   },
+ *   bgAttr: {
+ *    fill: string,
+ *   },
+ *   ranges: {
+ *    x1: number,
+ *    y1: number,
+ *    x2: number,
+ *    y2: number,
+ *   },
  *   spacing: {
  *    top: number,
  *    left: number,
  *    right: number,
  *    bottom: number
  *   },
+ *   onSelect(min: number, max: number, config: object): void,
  *  },
  *  series: {
  *   type: 'line',
@@ -172,9 +186,6 @@
  *     stroke: string,
  *     strokeWidth: number,
  *     strokeDasharray: string,
- *    },
- *    style: {
- *
  *    },
  *   }[],
  *  }[],
@@ -331,12 +342,25 @@ var chartDefaults = {
   },
   selectArea: {
     type: '',
+    selectAttr: {
+      fill: 'rgba(0,0,0,.5)',
+    },
+    bgAttr: {
+      fill: 'rgba(0,0,0,.2)',
+    },
+    ranges: {
+      x1: .1,
+      y1: 0,
+      x2: .9,
+      y2: 1,
+    },
     spacing: {
       top: 15,
       left: 30,
       right: 30,
       bottom: 50,
     },
+    onSelect: function () {}
   },
   series: [{
     spacing: {

@@ -182,12 +182,26 @@ function start(chartsData) {
  *  },
  *  selectArea: {
  *   type: 'x',
+ *   selectAttr: {
+ *    fill: string,
+ *    stroke: string,
+ *   },
+ *   bgAttr: {
+ *    fill: string,
+ *   },
+ *   ranges: {
+ *    x1: number,
+ *    y1: number,
+ *    x2: number,
+ *    y2: number,
+ *   },
  *   spacing: {
  *    top: number,
  *    left: number,
  *    right: number,
  *    bottom: number
  *   },
+ *   onSelect(min: number, max: number, config: object): void,
  *  },
  *  series: {
  *   type: 'line',
@@ -446,12 +460,26 @@ function transformChartDataToMainChartConfig(chartsData) {
  *  },
  *  selectArea: {
  *   type: 'x',
+ *   selectAttr: {
+ *    fill: string,
+ *    stroke: string,
+ *   },
+ *   bgAttr: {
+ *    fill: string,
+ *   },
+ *   ranges: {
+ *    x1: number,
+ *    y1: number,
+ *    x2: number,
+ *    y2: number,
+ *   },
  *   spacing: {
  *    top: number,
  *    left: number,
  *    right: number,
  *    bottom: number
  *   },
+ *   onSelect(min: number, max: number, config: object): void,
  *  },
  *  series: {
  *   type: 'line',
@@ -500,6 +528,12 @@ function transformChartDataToSubChartConfig(chartsData) {
     },
     selectArea: {
       type: 'x',
+      bgAttr: {
+        fill: theme.selectFrameOutOverlay,
+      },
+      selectAttr: {
+        fill: theme.selectFrameBorders,
+      },
       spacing: {
         top: 10,
         bottom: 10,
