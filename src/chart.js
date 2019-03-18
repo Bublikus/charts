@@ -716,7 +716,17 @@ function ChartSeriesLine(series, config) {
  *    right: number,
  *    bottom: number
  *   },
- *   onSelect(min: number, max: number, config: object): void,
+ *   onSelect({
+ *    x1: number,
+ *    y1: number,
+ *    x2: number,
+ *    y2: number,
+ *   }, config: object): {
+ *    x1: number,
+ *    y1: number,
+ *    x2: number,
+ *    y2: number,
+ *   },
  *  }}
  * @param config: object
  */
@@ -724,8 +734,24 @@ function ChartSelectArea(selectArea, config) {
   this.config = config;
   this.selectArea = selectArea;
 
-  var verticalBorderWidth = this.selectArea.type.search('y') !== -1 ? 7 : 2;
-  var horizontalBorderWidth = this.selectArea.type.search('x') !== -1 ? 7 : 2;
+  store.selectRanges = this.selectArea.ranges;
+
+  var chartContainer = this.config.chart.renderTo;
+  var onSelect = this.selectArea.onSelect;
+  var selectAreaSpacing = this.selectArea.spacing;
+
+  var isXZoomable = this.selectArea.type.search('x') !== -1;
+  var isYZoomable = this.selectArea.type.search('y') !== -1;
+
+  var horizontalBorderWidth = isXZoomable ? 7 : 2;
+  var verticalBorderWidth = isYZoomable ? 7 : 2;
+
+  var borderVStyles = stylesObjectToString({
+    cursor: 'ns-resize',
+  });
+  var borderHStyles = stylesObjectToString({
+    cursor: 'ew-resize',
+  });
 
   var innerContentCoords = getCoordsUnderTitle(this.config, this.selectArea.spacing);
 
@@ -735,6 +761,7 @@ function ChartSelectArea(selectArea, config) {
     x2: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x2) - horizontalBorderWidth,
     y2: innerContentCoords.y1 + (innerContentCoords.innerHeight * this.selectArea.ranges.y1) + verticalBorderWidth,
   };
+
   var borderLeftAreaCoords = {
     x1: innerContentCoords.x1 + (innerContentCoords.innerWidth * this.selectArea.ranges.x1),
     y1: innerContentCoords.y1 + (innerContentCoords.innerHeight * this.selectArea.ranges.y1),
@@ -784,24 +811,28 @@ function ChartSelectArea(selectArea, config) {
     y: borderTopAreaCoords.y1,
     width: borderTopAreaCoords.x2 - borderTopAreaCoords.x1,
     height: borderTopAreaCoords.y2 - borderTopAreaCoords.y1,
+    style: borderVStyles,
   });
   var borderRectLeft = Object.assign({}, this.selectArea.selectAttr, {
     x: borderLeftAreaCoords.x1,
     y: borderLeftAreaCoords.y1,
     width: borderLeftAreaCoords.x2 - borderLeftAreaCoords.x1,
     height: borderLeftAreaCoords.y2 - borderLeftAreaCoords.y1,
+    style: borderHStyles,
   });
   var borderRectRight = Object.assign({}, this.selectArea.selectAttr, {
     x: borderRightAreaCoords.x1,
     y: borderRightAreaCoords.y1,
     width: borderRightAreaCoords.x2 - borderRightAreaCoords.x1,
     height: borderRightAreaCoords.y2 - overlayRightAreaCoords.y1,
+    style: borderHStyles,
   });
   var borderRectBottom = Object.assign({}, this.selectArea.selectAttr, {
     x: borderBottomAreaCoords.x1,
     y: borderBottomAreaCoords.y1,
     width: borderBottomAreaCoords.x2 - borderBottomAreaCoords.x1,
     height: borderBottomAreaCoords.y2 - borderBottomAreaCoords.y1,
+    style: borderVStyles,
   });
 
   var bgRectTop = Object.assign({}, this.selectArea.bgAttr, {
@@ -836,19 +867,120 @@ function ChartSelectArea(selectArea, config) {
   this.containers.borderRight = createSVGElement('rect', borderRectRight);
   this.containers.borderBottom = createSVGElement('rect', borderRectBottom);
 
+  this.containers.borderTop.addEventListener('mousedown', function () {
+    this.containers.borderTop.addEventListener('mouseup', function () {
+      document.removeEventListener('mousemove', moveBorder.bind(this));
+    });
+    document.addEventListener('mousemove', moveBorder.bind(this));
+
+    function moveBorder(e) {
+      if (isYZoomable) {
+        var relativeY = e.pageY - chartContainer.getBoundingClientRect().top + selectAreaSpacing.top;
+        var newY = relativeY / innerContentCoords.innerHeight > store.selectRanges.y2 ? store.selectRanges.y2 : relativeY / innerContentCoords.innerHeight;
+        var newSelectRanges = Object.assign({}, store.selectRanges, { y1: newY });
+        eventAggregator.dispatch('selectRanges', newSelectRanges);
+        onSelect(newSelectRanges);
+        var y = newY * innerContentCoords.innerHeight - innerContentCoords.innerHeight / 2 - verticalBorderWidth / 2;
+        this.containers.borderTop.style.y = y;
+        this.containers.borderLeft.style.y = y;
+        this.containers.borderRight.style.y = y;
+      }
+    }
+  }.bind(this));
+  this.containers.borderLeft.addEventListener('mousedown', function () {
+    this.containers.borderLeft.addEventListener('mouseup', function () {
+      document.removeEventListener('mousemove', moveBorder.bind(this));
+    });
+    document.addEventListener('mousemove', moveBorder.bind(this));
+
+    function moveBorder(e) {
+      if (isXZoomable) {
+        var relativeX = e.clientX - chartContainer.getBoundingClientRect().left - innerContentCoords.x1;
+        var newX = relativeX / innerContentCoords.innerWidth;
+        var newSelectRanges = Object.assign({}, store.selectRanges, { x1: newX });
+        var x = newX * innerContentCoords.innerWidth + innerContentCoords.x1;
+        var width = store.selectRanges.x2 * innerContentCoords.innerWidth - newX * innerContentCoords.innerWidth - horizontalBorderWidth;
+        if (newX >= 0 && newX <= store.selectRanges.x2) {
+          store.selectRanges = newSelectRanges;
+          onSelect(newSelectRanges);
+          this.containers.borderLeft.style.x = x;
+          this.containers.borderTop.style.x = x + horizontalBorderWidth;
+          this.containers.borderTop.style.width = width - horizontalBorderWidth;
+          this.containers.borderBottom.style.x = x + horizontalBorderWidth;
+          this.containers.borderBottom.style.width = width - horizontalBorderWidth;
+          this.containers.bgLeft.style.width = x - innerContentCoords.x1;
+          this.containers.bgTop.style.x = x + horizontalBorderWidth;
+          this.containers.bgTop.style.width = width - horizontalBorderWidth;
+          this.containers.bgBottom.style.x = x + horizontalBorderWidth;
+          this.containers.bgBottom.style.width = width - horizontalBorderWidth;
+        }
+      }
+    }
+  }.bind(this));
+  this.containers.borderRight.addEventListener('mousedown', function () {
+    this.containers.borderRight.addEventListener('mouseup', function () {
+      document.removeEventListener('mousemove', moveBorder.bind(this));
+    });
+    document.addEventListener('mousemove', moveBorder.bind(this));
+
+    function moveBorder(e) {
+      if (isXZoomable) {
+        var innerWidth = innerContentCoords.innerWidth - horizontalBorderWidth;
+        var relativeX = e.clientX - chartContainer.getBoundingClientRect().left - innerContentCoords.x1;
+        var newX = relativeX / innerWidth;
+        var newSelectRanges = Object.assign({}, store.selectRanges, { x2: newX });
+        var x = newX * innerWidth + innerContentCoords.x1;
+        var width = relativeX - store.selectRanges.x1 * innerWidth;
+        if (newX <= 1 && newX >= store.selectRanges.x1) {
+          store.selectRanges = newSelectRanges;
+          onSelect(newSelectRanges);
+          this.containers.borderRight.style.x = x;
+          this.containers.borderTop.style.width = width - horizontalBorderWidth;
+          this.containers.borderBottom.style.width = width - horizontalBorderWidth;
+          this.containers.bgRight.style.x = x;
+          this.containers.bgRight.style.width = innerWidth - x + innerContentCoords.x1 + horizontalBorderWidth;
+          this.containers.bgTop.style.x = x;
+          this.containers.bgTop.style.width = width - horizontalBorderWidth;
+          this.containers.bgBottom.style.x = x;
+          this.containers.bgBottom.style.width = width - horizontalBorderWidth;
+        }
+      }
+    }
+  }.bind(this));
+  this.containers.borderBottom.addEventListener('mousedown', function () {
+    this.containers.borderBottom.addEventListener('mouseup', function () {
+      document.removeEventListener('mousemove', moveBorder.bind(this));
+    });
+    document.addEventListener('mousemove', moveBorder.bind(this));
+
+    function moveBorder(e) {
+      if (isYZoomable) {
+        var relativeY = e.pageY - chartContainer.getBoundingClientRect().top + selectAreaSpacing.top;
+        var newY = relativeY / innerContentCoords.innerHeight < store.selectRanges.y1 ? store.selectRanges.y1 : relativeY / innerContentCoords.innerHeight;
+        var newSelectRanges = Object.assign({}, store.selectRanges, { y2: newY });
+        eventAggregator.dispatch('selectRanges', newSelectRanges);
+        onSelect(newSelectRanges);
+        var y = newY * innerContentCoords.innerHeight - innerContentCoords.innerHeight / 2 - verticalBorderWidth / 2;
+        this.containers.borderBottom.style.y = y;
+        this.containers.borderLeft.style.y = y;
+        this.containers.borderRight.style.y = y;
+      }
+    }
+  }.bind(this));
+
   this.containers.bgTop = createSVGElement('rect', bgRectTop);
   this.containers.bgLeft = createSVGElement('rect', bgRectLeft);
   this.containers.bgRight = createSVGElement('rect', bgRectRight);
   this.containers.bgBottom = createSVGElement('rect', bgRectBottom);
 
-  this.containers.borderGroup = createSVGElement('g', null,[
+  this.containers.borderGroup = createSVGElement('g', null, [
     this.containers.borderTop,
     this.containers.borderLeft,
     this.containers.borderRight,
     this.containers.borderBottom,
   ]);
 
-  this.containers.bgGroup = createSVGElement('g', null,[
+  this.containers.bgGroup = createSVGElement('g', null, [
     this.containers.bgTop,
     this.containers.bgLeft,
     this.containers.bgRight,

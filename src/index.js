@@ -17,7 +17,7 @@ function start(chartsData) {
   var subChartConfig = transformChartDataToSubChartConfig(chartsData[0]);
 
   // Redraw on switch theme.
-  eventAggregator.subscribe('switchTheme', function () {
+  eventAggregator.subscribe('theme', function () {
     mainChartConfig = transformChartDataToMainChartConfig(chartsData[0]);
     subChartConfig = transformChartDataToSubChartConfig(chartsData[0]);
     doChart(mainChartConfig, chartDefaults);
@@ -201,7 +201,17 @@ function start(chartsData) {
  *    right: number,
  *    bottom: number
  *   },
- *   onSelect(min: number, max: number, config: object): void,
+ *   onSelect({
+ *    x1: number,
+ *    y1: number,
+ *    x2: number,
+ *    y2: number,
+ *   }, config: object): {
+ *    x1: number,
+ *    y1: number,
+ *    x2: number,
+ *    y2: number,
+ *   },
  *  },
  *  series: {
  *   type: 'line',
@@ -479,7 +489,17 @@ function transformChartDataToMainChartConfig(chartsData) {
  *    right: number,
  *    bottom: number
  *   },
- *   onSelect(min: number, max: number, config: object): void,
+ *   onSelect({
+ *    x1: number,
+ *    y1: number,
+ *    x2: number,
+ *    y2: number,
+ *   }, config: object): {
+ *    x1: number,
+ *    y1: number,
+ *    x2: number,
+ *    y2: number,
+ *   },
  *  },
  *  series: {
  *   type: 'line',

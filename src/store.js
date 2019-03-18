@@ -18,12 +18,25 @@
  *    line1: string,
  *    yLabels: string,
  *   },
- *  }
+ *  },
+ *
+ *  selectRanges: {
+ *   x1: number,
+ *   y1: number,
+ *   x2: number,
+ *   y2: number,
+ *  },
  * }}
  */
 var store = {
   theme: {
     themeKey: 'night',
     styles: themeNight,
+  },
+  selectRanges: {
+    x1: 0,
+    y1: 0,
+    x2: 1,
+    y2: 1,
   },
 };

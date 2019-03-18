@@ -3,10 +3,10 @@ var colors = {
   black: '#000000',
 
   lightGrey: '#ecf0f3',
-  regularGrey: '#dfe6eb',
+  regularGrey: 'rgba(33,33,33,.5)', // '#dfe6eb',
   darkGrey: '#96a2aa',
 
-  lightBlue: '#ddeaf3',
+  lightBlue: 'rgba(255,0,0,.5)', // '#ddeaf3',
   regularBlue: '#546778',
   darkBlue: '#242f3e',
 

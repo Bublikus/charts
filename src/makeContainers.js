@@ -10,7 +10,7 @@ function makeContainers() {
   var rootContainer = document.getElementById('root');
   rootContainer.style.backgroundColor = store.theme.styles.mainBackground;
 
-  eventAggregator.subscribe('switchTheme', function (theme) {
+  eventAggregator.subscribe('theme', function (theme) {
     rootContainer.style.backgroundColor = theme.styles.mainBackground;
   });
 
@@ -34,7 +34,7 @@ function makeContainers() {
   var switchButtonContainer = createElement('div',{ className: 'switch-button-container' }, switchButton);
 
   // Subscribe on theme change.
-  eventAggregator.subscribe('switchTheme', function (theme) {
+  eventAggregator.subscribe('theme', function (theme) {
     switchButton.innerText = theme.themeKey === 'day'
       ? 'Switch to Night Mode'
       : 'Switch to Day Mode';
@@ -64,5 +64,5 @@ function onSwitchTheme(themeKey) {
 
   store.theme = newTheme;
 
-  eventAggregator.dispatch('switchTheme', newTheme);
+  eventAggregator.dispatch('theme', newTheme);
 }

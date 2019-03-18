@@ -168,7 +168,17 @@
  *    right: number,
  *    bottom: number
  *   },
- *   onSelect(min: number, max: number, config: object): void,
+ *   onSelec({
+ *    x1: number,
+ *    y1: number,
+ *    x2: number,
+ *    y2: number,
+ *   }, config: object): {
+ *    x1: number,
+ *    y1: number,
+ *    x2: number,
+ *    y2: number,
+ *   },
  *  },
  *  series: {
  *   type: 'line',
@@ -360,8 +370,8 @@ var chartDefaults = {
       right: 30,
       bottom: 50,
     },
-    onSelect: function (min, max) {
-      console.log(min, max);
+    onSelect: function (coords) {
+      return coords;
     },
   },
   series: [{
