@@ -547,7 +547,7 @@ function transformChartDataToSubChartConfig(chartsData) {
       enabled: false,
     },
     selectArea: {
-      type: 'x',
+      type: 'xy',
       bgAttr: {
         fill: theme.selectFrameOutOverlay,
       },
