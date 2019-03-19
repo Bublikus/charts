@@ -371,6 +371,7 @@ var chartDefaults = {
       bottom: 50,
     },
     onSelect: function (coords) {
+      console.log(coords);
       return coords;
     },
   },
