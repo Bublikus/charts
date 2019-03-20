@@ -181,7 +181,7 @@ function start(chartsData) {
  *   enabled: boolean,
  *  },
  *  selectArea: {
- *   type: 'x',
+ *   type: 'x' | 'y' | 'xy',
  *   selectAttr: {
  *    fill: string,
  *    stroke: string,
@@ -469,7 +469,7 @@ function transformChartDataToMainChartConfig(chartsData) {
  *   enabled: boolean,
  *  },
  *  selectArea: {
- *   type: 'x',
+ *   type: 'x' | 'y' | 'xy',
  *   selectAttr: {
  *    fill: string,
  *    stroke: string,
@@ -547,7 +547,7 @@ function transformChartDataToSubChartConfig(chartsData) {
       enabled: false,
     },
     selectArea: {
-      type: 'xy',
+      type: 'x',
       bgAttr: {
         fill: theme.selectFrameOutOverlay,
       },

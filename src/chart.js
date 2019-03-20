@@ -696,7 +696,7 @@ function ChartSeriesLine(series, config) {
  * @constructor ChartSelectArea
  *
  * @param selectArea {{
- *   type: 'x',
+ *   type: 'x' | 'y' | 'xy',
  *   selectAttr: {
  *    fill: string,
  *    stroke: string,
@@ -742,25 +742,43 @@ function ChartSelectArea(selectArea, config) {
   var isXZoomable = this.selectArea.type.search('x') !== -1;
   var isYZoomable = this.selectArea.type.search('y') !== -1;
 
-  var horizontalBorderWidth = isXZoomable ? 7 : 2;
-  var verticalBorderWidth = isYZoomable ? 7 : 2;
+  var horizontalBorderWidth = isXZoomable ? 8 : 2;
+  var verticalBorderWidth = isYZoomable ? 8 : 2;
 
+  var dragAreaStyles = stylesObjectToString({
+    cursor: 'move',
+    fill: 'transparent',
+  });
   var borderVStyles = stylesObjectToString({
-    cursor: isXZoomable ? 'ns-resize' : 'default',
+    cursor: isYZoomable ? 'ns-resize' : 'default',
   });
   var borderHStyles = stylesObjectToString({
-    cursor: isYZoomable ? 'ew-resize' : 'default',
+    cursor: isXZoomable ? 'ew-resize' : 'default',
   });
 
   var innerContentCoords = getCoordsUnderTitle(this.config, this.selectArea.spacing);
 
-  var borderRectTop = Object.assign({}, this.selectArea.selectAttr, { style: borderVStyles, height: verticalBorderWidth + 'px' });
-  var borderRectLeft = Object.assign({}, this.selectArea.selectAttr, { style: borderHStyles, width: horizontalBorderWidth + 'px' });
-  var borderRectRight = Object.assign({}, this.selectArea.selectAttr, { style: borderHStyles, width: horizontalBorderWidth + 'px' });
-  var borderRectBottom = Object.assign({}, this.selectArea.selectAttr, { style: borderVStyles, height: verticalBorderWidth + 'px' });
+  var dragAreaRect = Object.assign({}, { style: dragAreaStyles, transition: '.1s ease-in-out' });
+  var borderRectTop = Object.assign({}, this.selectArea.selectAttr, {
+    style: borderVStyles,
+    height: verticalBorderWidth + 'px',
+  });
+  var borderRectLeft = Object.assign({}, this.selectArea.selectAttr, {
+    style: borderHStyles,
+    width: horizontalBorderWidth + 'px',
+  });
+  var borderRectRight = Object.assign({}, this.selectArea.selectAttr, {
+    style: borderHStyles,
+    width: horizontalBorderWidth + 'px',
+  });
+  var borderRectBottom = Object.assign({}, this.selectArea.selectAttr, {
+    style: borderVStyles,
+    height: verticalBorderWidth + 'px',
+  });
 
   this.containers = {};
 
+  this.containers.dragAreaRect = createSVGElement('rect', dragAreaRect);
   this.containers.borderTop = createSVGElement('rect', borderRectTop);
   this.containers.borderLeft = createSVGElement('rect', borderRectLeft);
   this.containers.borderRight = createSVGElement('rect', borderRectRight);
@@ -777,7 +795,7 @@ function ChartSelectArea(selectArea, config) {
       if (isYZoomable) {
         var relativeY = e.clientY - chartContainer.getBoundingClientRect().top - innerContentCoords.y1 - verticalBorderWidth / 2;
         var newY = relativeY / (innerContentCoords.innerHeight - verticalBorderWidth);
-        var newSelectRanges = Object.assign({}, store.selectRanges,{ y1: newY });
+        var newSelectRanges = Object.assign({}, store.selectRanges, { y1: newY });
         redrawSelectArea.call(that, newSelectRanges);
       }
     }
@@ -793,7 +811,7 @@ function ChartSelectArea(selectArea, config) {
       if (isXZoomable) {
         var relativeX = e.clientX - chartContainer.getBoundingClientRect().left - innerContentCoords.x1 - horizontalBorderWidth / 2;
         var newX = relativeX / (innerContentCoords.innerWidth - horizontalBorderWidth);
-        var newSelectRanges = Object.assign({}, store.selectRanges,{ x1: newX });
+        var newSelectRanges = Object.assign({}, store.selectRanges, { x1: newX });
         redrawSelectArea.call(that, newSelectRanges);
       }
     }
@@ -809,7 +827,7 @@ function ChartSelectArea(selectArea, config) {
       if (isXZoomable) {
         var relativeX = e.clientX - chartContainer.getBoundingClientRect().left - innerContentCoords.x1 - horizontalBorderWidth / 2;
         var newX = relativeX / (innerContentCoords.innerWidth - horizontalBorderWidth);
-        var newSelectRanges = Object.assign({}, store.selectRanges,{ x2: newX });
+        var newSelectRanges = Object.assign({}, store.selectRanges, { x2: newX });
         redrawSelectArea.call(that, newSelectRanges);
       }
     }
@@ -825,10 +843,38 @@ function ChartSelectArea(selectArea, config) {
       if (isYZoomable) {
         var relativeY = e.clientY - chartContainer.getBoundingClientRect().top - innerContentCoords.y1 - verticalBorderWidth / 2;
         var newY = relativeY / (innerContentCoords.innerHeight - verticalBorderWidth);
-        var newSelectRanges = Object.assign({}, store.selectRanges,{ y2: newY });
+        var newSelectRanges = Object.assign({}, store.selectRanges, { y2: newY });
         redrawSelectArea.call(that, newSelectRanges);
       }
     }
+  }.bind(this));
+  this.containers.dragAreaRect.addEventListener('mousedown', function (e) {
+    var globX = e.clientX - chartContainer.getBoundingClientRect().left - innerContentCoords.x1 - horizontalBorderWidth / 2;
+    var globY = e.clientY - chartContainer.getBoundingClientRect().top - innerContentCoords.y1 - verticalBorderWidth / 2;
+    document.addEventListener('mouseup', function () {
+      document.removeEventListener('mousemove', moveBorder);
+    });
+    document.addEventListener('mousemove', moveBorder);
+
+    var that = this; // Need to bind this for correct removing event from document.
+    function moveBorder(e) {
+      var localX = e.clientX - chartContainer.getBoundingClientRect().left - innerContentCoords.x1 - horizontalBorderWidth / 2;
+      var localY = e.clientY - chartContainer.getBoundingClientRect().top - innerContentCoords.y1 - verticalBorderWidth / 2;
+
+      var newX = isXZoomable ? (localX - globX) / (innerContentCoords.innerWidth - horizontalBorderWidth) : 0;
+      var newY = isYZoomable ? (localY - globY) / (innerContentCoords.innerHeight - verticalBorderWidth) : 0;
+
+      globX = localX;
+      globY = localY;
+
+      var newSelectRanges = Object.assign({}, store.selectRanges, {
+        x1: store.selectRanges.x1 + newX,
+        y1: store.selectRanges.y1 + newY,
+        x2: store.selectRanges.x2 + newX,
+        y2: store.selectRanges.y2 + newY,
+      });
+      redrawSelectArea.call(that, newSelectRanges);
+    };
   }.bind(this));
 
   this.containers.bgTop = createSVGElement('rect', this.selectArea.bgAttr);
@@ -837,59 +883,67 @@ function ChartSelectArea(selectArea, config) {
   this.containers.bgBottom = createSVGElement('rect', this.selectArea.bgAttr);
 
   redrawSelectArea.call(this, this.selectArea.ranges);
+
   function redrawSelectArea(newSelectRanges) {
-    if (
-      newSelectRanges.x1 < 0 || newSelectRanges.x1 > newSelectRanges.x2
-      || newSelectRanges.x2 > 1 || newSelectRanges.x2 < newSelectRanges.x1
-      || newSelectRanges.y1 < 0 || newSelectRanges.y1 > newSelectRanges.y2
-      || newSelectRanges.y2 > 1 || newSelectRanges.y2 < newSelectRanges.y1
-    ) {
-      return;
-    }
+    requestAnimationFrame(function () {
+      if (
+        newSelectRanges.x1 < 0 || newSelectRanges.x1 > newSelectRanges.x2
+        || newSelectRanges.x2 > 1 || newSelectRanges.x2 < newSelectRanges.x1
+        || newSelectRanges.y1 < 0 || newSelectRanges.y1 > newSelectRanges.y2
+        || newSelectRanges.y2 > 1 || newSelectRanges.y2 < newSelectRanges.y1
+      ) {
+        return;
+      }
 
-    var relativeCoords = {
-      xStart: innerContentCoords.x1,
-      yStart: innerContentCoords.y1,
-      xEnd: innerContentCoords.x2,
-      yEnd: innerContentCoords.y2,
-      x1: newSelectRanges.x1 * (innerContentCoords.innerWidth - horizontalBorderWidth) + innerContentCoords.x1 + horizontalBorderWidth / 2,
-      y1: newSelectRanges.y1 * (innerContentCoords.innerHeight - verticalBorderWidth) + innerContentCoords.y1 + verticalBorderWidth / 2,
-      x2: newSelectRanges.x2 * (innerContentCoords.innerWidth - horizontalBorderWidth) + innerContentCoords.x1 + horizontalBorderWidth / 2,
-      y2: newSelectRanges.y2 * (innerContentCoords.innerHeight - verticalBorderWidth) + innerContentCoords.y1 + verticalBorderWidth / 2,
-    };
+      var relativeCoords = {
+        xStart: innerContentCoords.x1,
+        yStart: innerContentCoords.y1,
+        xEnd: innerContentCoords.x2,
+        yEnd: innerContentCoords.y2,
+        x1: newSelectRanges.x1 * (innerContentCoords.innerWidth - horizontalBorderWidth) + innerContentCoords.x1 + horizontalBorderWidth / 2,
+        y1: newSelectRanges.y1 * (innerContentCoords.innerHeight - verticalBorderWidth) + innerContentCoords.y1 + verticalBorderWidth / 2,
+        x2: newSelectRanges.x2 * (innerContentCoords.innerWidth - horizontalBorderWidth) + innerContentCoords.x1 + horizontalBorderWidth / 2,
+        y2: newSelectRanges.y2 * (innerContentCoords.innerHeight - verticalBorderWidth) + innerContentCoords.y1 + verticalBorderWidth / 2,
+      };
 
-    store.selectRanges = newSelectRanges;
-    onSelect(newSelectRanges);
+      store.selectRanges = newSelectRanges;
+      onSelect(newSelectRanges);
 
-    this.containers.borderTop.style.x = relativeCoords.x1 + horizontalBorderWidth / 2;
-    this.containers.borderTop.style.y = relativeCoords.y1 - verticalBorderWidth / 2;
-    this.containers.borderTop.style.width = relativeCoords.x2 - relativeCoords.x1 - horizontalBorderWidth;
-    this.containers.borderLeft.style.x = relativeCoords.x1 - horizontalBorderWidth / 2;
-    this.containers.borderLeft.style.y = relativeCoords.y1 - verticalBorderWidth / 2;
-    this.containers.borderLeft.style.height = relativeCoords.y2 - relativeCoords.y1 + verticalBorderWidth;
-    this.containers.borderRight.style.x = relativeCoords.x2 - horizontalBorderWidth / 2;
-    this.containers.borderRight.style.y = relativeCoords.y1 - verticalBorderWidth / 2;
-    this.containers.borderRight.style.height = relativeCoords.y2 - relativeCoords.y1 + verticalBorderWidth;
-    this.containers.borderBottom.style.x = relativeCoords.x1 + horizontalBorderWidth / 2;
-    this.containers.borderBottom.style.y = relativeCoords.y2 - verticalBorderWidth / 2;
-    this.containers.borderBottom.style.width = relativeCoords.x2 - relativeCoords.x1 - horizontalBorderWidth;
+      this.containers.borderTop.style.x = relativeCoords.x1 + horizontalBorderWidth / 2;
+      this.containers.borderTop.style.y = relativeCoords.y1 - verticalBorderWidth / 2;
+      this.containers.borderTop.style.width = relativeCoords.x2 - relativeCoords.x1 - horizontalBorderWidth;
+      this.containers.borderLeft.style.x = relativeCoords.x1 - horizontalBorderWidth / 2;
+      this.containers.borderLeft.style.y = relativeCoords.y1 - verticalBorderWidth / 2;
+      this.containers.borderLeft.style.height = relativeCoords.y2 - relativeCoords.y1 + verticalBorderWidth;
+      this.containers.borderRight.style.x = relativeCoords.x2 - horizontalBorderWidth / 2;
+      this.containers.borderRight.style.y = relativeCoords.y1 - verticalBorderWidth / 2;
+      this.containers.borderRight.style.height = relativeCoords.y2 - relativeCoords.y1 + verticalBorderWidth;
+      this.containers.borderBottom.style.x = relativeCoords.x1 + horizontalBorderWidth / 2;
+      this.containers.borderBottom.style.y = relativeCoords.y2 - verticalBorderWidth / 2;
+      this.containers.borderBottom.style.width = relativeCoords.x2 - relativeCoords.x1 - horizontalBorderWidth;
 
-    this.containers.bgTop.style.x = relativeCoords.x1 - horizontalBorderWidth / 2;
-    this.containers.bgTop.style.y = relativeCoords.yStart;
-    this.containers.bgTop.style.width = relativeCoords.x2 - relativeCoords.x1 + horizontalBorderWidth;
-    this.containers.bgTop.style.height = (relativeCoords.y1 - verticalBorderWidth / 2) - relativeCoords.yStart;
-    this.containers.bgLeft.style.x = relativeCoords.xStart;
-    this.containers.bgLeft.style.y = relativeCoords.yStart;
-    this.containers.bgLeft.style.width = (relativeCoords.x1 - horizontalBorderWidth / 2) - relativeCoords.xStart;
-    this.containers.bgLeft.style.height = relativeCoords.yEnd - relativeCoords.yStart;
-    this.containers.bgRight.style.x = relativeCoords.x2 + horizontalBorderWidth / 2;
-    this.containers.bgRight.style.y = relativeCoords.yStart;
-    this.containers.bgRight.style.width = relativeCoords.xEnd - (relativeCoords.x2 + horizontalBorderWidth / 2);
-    this.containers.bgRight.style.height = relativeCoords.yEnd - relativeCoords.yStart;
-    this.containers.bgBottom.style.x = relativeCoords.x1 - horizontalBorderWidth / 2;
-    this.containers.bgBottom.style.y = relativeCoords.y2 + verticalBorderWidth / 2;
-    this.containers.bgBottom.style.width = relativeCoords.x2 - relativeCoords.x1 + horizontalBorderWidth;
-    this.containers.bgBottom.style.height = relativeCoords.yEnd - (relativeCoords.y2 + verticalBorderWidth / 2);
+      this.containers.bgTop.style.x = relativeCoords.x1 - horizontalBorderWidth / 2;
+      this.containers.bgTop.style.y = relativeCoords.yStart;
+      this.containers.bgTop.style.width = relativeCoords.x2 - relativeCoords.x1 + horizontalBorderWidth;
+      this.containers.bgTop.style.height = (relativeCoords.y1 - verticalBorderWidth / 2) - relativeCoords.yStart;
+      this.containers.bgLeft.style.x = relativeCoords.xStart;
+      this.containers.bgLeft.style.y = relativeCoords.yStart;
+      this.containers.bgLeft.style.width = (relativeCoords.x1 - horizontalBorderWidth / 2) - relativeCoords.xStart;
+      this.containers.bgLeft.style.height = relativeCoords.yEnd - relativeCoords.yStart;
+      this.containers.bgRight.style.x = relativeCoords.x2 + horizontalBorderWidth / 2;
+      this.containers.bgRight.style.y = relativeCoords.yStart;
+      this.containers.bgRight.style.width = relativeCoords.xEnd - (relativeCoords.x2 + horizontalBorderWidth / 2);
+      this.containers.bgRight.style.height = relativeCoords.yEnd - relativeCoords.yStart;
+      this.containers.bgBottom.style.x = relativeCoords.x1 - horizontalBorderWidth / 2;
+      this.containers.bgBottom.style.y = relativeCoords.y2 + verticalBorderWidth / 2;
+      this.containers.bgBottom.style.width = relativeCoords.x2 - relativeCoords.x1 + horizontalBorderWidth;
+      this.containers.bgBottom.style.height = relativeCoords.yEnd - (relativeCoords.y2 + verticalBorderWidth / 2);
+
+      this.containers.dragAreaRect.style.x = relativeCoords.x1 + horizontalBorderWidth / 2;
+      this.containers.dragAreaRect.style.y = relativeCoords.y1 + verticalBorderWidth / 2;
+      this.containers.dragAreaRect.style.width = relativeCoords.x2 - relativeCoords.x1 - horizontalBorderWidth;
+      this.containers.dragAreaRect.style.height = relativeCoords.y2 - relativeCoords.y1 - verticalBorderWidth;
+    }.bind(this));
   }
 
   this.containers.borderGroup = createSVGElement('g', null, [
@@ -897,6 +951,7 @@ function ChartSelectArea(selectArea, config) {
     this.containers.borderLeft,
     this.containers.borderRight,
     this.containers.borderBottom,
+    this.containers.dragAreaRect,
   ]);
 
   this.containers.bgGroup = createSVGElement('g', null, [

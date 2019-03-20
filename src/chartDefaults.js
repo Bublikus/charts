@@ -148,7 +148,7 @@
  *   enabled: boolean,
  *  },
  *  selectArea: {
- *   type: 'x',
+ *   type: 'x' | 'y' | 'xy',
  *   selectAttr: {
  *    fill: string,
  *    stroke: string,
