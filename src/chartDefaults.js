@@ -188,15 +188,15 @@
  *    right: number,
  *    bottom: number
  *   },
+ *   attr: {
+ *    stroke: string,
+ *    strokeWidth: number,
+ *    strokeDasharray: string,
+ *   },
  *   data: {
  *    x: number,
  *    y: number,
  *    info: object,
- *    attr: {
- *     stroke: string,
- *     strokeWidth: number,
- *     strokeDasharray: string,
- *    },
  *   }[],
  *  }[],
  * }}
@@ -381,6 +381,10 @@ var chartDefaults = {
       left: 30,
       right: 30,
       bottom: 50,
+    },
+    attr: {
+      strokeWidth: 2,
+      fill: 'transparent',
     },
   }],
 };

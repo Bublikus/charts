@@ -221,18 +221,15 @@ function start(chartsData) {
  *    right: number,
  *    bottom: number
  *   },
+ *   attr: {
+ *    stroke: string,
+ *    strokeWidth: number,
+ *    strokeDasharray: string,
+ *   },
  *   data: {
  *    x: number,
  *    y: number,
  *    info: object,
- *    attr: {
- *     stroke: string,
- *     strokeWidth: number,
- *     strokeDasharray: string,
- *    },
- *    style: {
- *
- *    },
  *   }[],
  *  }[]
  * }}
@@ -509,18 +506,15 @@ function transformChartDataToMainChartConfig(chartsData) {
  *    right: number,
  *    bottom: number
  *   },
+ *   attr: {
+ *    stroke: string,
+ *    strokeWidth: number,
+ *    strokeDasharray: string,
+ *   },
  *   data: {
  *    x: number,
  *    y: number,
  *    info: object,
- *    attr: {
- *     stroke: string,
- *     strokeWidth: number,
- *     strokeDasharray: string,
- *    },
- *    style: {
- *
- *    },
  *   }[],
  *  }[],
  * }}
@@ -600,18 +594,15 @@ function transformChartDataToSubChartConfig(chartsData) {
  *   right: number,
  *   bottom: number
  *  },
+ *  attr: {
+ *   stroke: string,
+ *   strokeWidth: number,
+ *   strokeDasharray: string,
+ *  },
  *  data: {
  *   x: number,
  *   y: number,
  *   info: object,
- *   attr: {
- *    stroke: string,
- *    strokeWidth: number,
- *    strokeDasharray: string,
- *   },
- *   style: {
- *
- *   },
  *  }[],
  * }[]}
  */
@@ -651,15 +642,15 @@ function getSeries(chartData) {
             info: {
               name: name,
             },
-            attr: {
-              stroke: color,
-            },
           };
         });
 
       return {
         type: type,
         data: data,
+        attr: {
+          stroke: color,
+        },
       };
     });
 }

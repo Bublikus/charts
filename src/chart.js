@@ -588,18 +588,15 @@ function ChartXAxisLabels(xAxisLabels, config) {
  *    right: number,
  *    bottom: number
  *   },
+ *   attr: {
+ *    stroke: string,
+ *    strokeWidth: number,
+ *    strokeDasharray: string,
+ *   },
  *   data: {
  *    x: number,
  *    y: number,
  *    info: object,
- *    attr: {
- *     stroke: string,
- *     strokeWidth: number,
- *     strokeDasharray: string,
- *    },
- *    style: {
- *
- *    },
  *   }[],
  *  }[],
  * }
@@ -642,15 +639,13 @@ function ChartSeriesLine(series, config) {
 
       return Object.assign({}, seriesItem, {
         data: ((seriesItem || {}).data || [])
-          .reduce(function (acc, dataItem, i, dataArray) {
-            if (!dataItem || (i === dataArray.length - 1)) {
+          .reduce(function (acc, dataItem) {
+            if (!dataItem) {
               return acc;
             }
             var newData = Object.assign({}, dataItem, {
-              x1: dataItem.x,
-              y1: dataItem.y,
-              x2: dataArray[i + 1].x,
-              y2: dataArray[i + 1].y,
+              x: dataItem.x,
+              y: dataItem.y,
             });
             acc.push(newData);
             return acc;
@@ -658,28 +653,21 @@ function ChartSeriesLine(series, config) {
       });
     })
     .map(function (seriesWithCoords) {
-      var minMaxX = getMinMaxOfSeriesData(this.config.series, 'x');
-      var minMaxY = getMinMaxOfSeriesData(this.config.series, 'y');
+      var minMaxX = getMinMaxOfSeriesData(this.series, 'x');
+      var minMaxY = getMinMaxOfSeriesData(this.series, 'y');
       var areaCoords = getCoordsUnderTitle(this.config, seriesWithCoords.spacing);
+      var defaultAttr = attrObjectToValidObject(seriesWithCoords.attr);
 
-      return seriesWithCoords.data
-        .map(function (dataWithCoords) {
-          var x1 = areaCoords.x1 + areaCoords.innerWidth * ((dataWithCoords.x1 - minMaxX.min) / (minMaxX.max - minMaxX.min));
-          var y1 = areaCoords.y2 - areaCoords.innerHeight * ((dataWithCoords.y1 - minMaxY.min) / (minMaxY.max - minMaxY.min));
-          var x2 = areaCoords.x1 + areaCoords.innerWidth * ((dataWithCoords.x2 - minMaxX.min) / (minMaxX.max - minMaxX.min));
-          var y2 = areaCoords.y2 - areaCoords.innerHeight * ((dataWithCoords.y2 - minMaxY.min) / (minMaxY.max - minMaxY.min));
+      var path = seriesWithCoords.data
+        .reduce(function (acc, dataWithCoords, i) {
+          var x = areaCoords.x1 + areaCoords.innerWidth * ((dataWithCoords.x - minMaxX.min) / (minMaxX.max - minMaxX.min));
+          var y = areaCoords.y1 - areaCoords.innerHeight * ((dataWithCoords.y - minMaxY.min) / (minMaxY.max - minMaxY.min)) + areaCoords.innerHeight;
+          acc += (i === 0 ? 'M ' : ' L ') + x + ',' + y;
+          return acc;
+        }, '');
 
-          var defaultAttr = attrObjectToValidObject({
-            strokeWidth: 2,
-          });
-          var configAttr = attrObjectToValidObject(dataWithCoords.attr);
-          var generatedAttr = {
-            d: 'M ' + x1 + ',' + y1 + ' L ' + x2 + ',' + y2,
-          };
-          var pathAttr = Object.assign({}, defaultAttr, configAttr, generatedAttr);
-
-          return createSVGElement('path', pathAttr);
-        });
+      var pathAttr = Object.assign({}, defaultAttr, { d: path });
+      return createSVGElement('path', pathAttr);
     }.bind(this));
 
   this.containers = {};
