@@ -40,10 +40,7 @@ function doChart(config, defaultConfig) {
  */
 function drawChart(config) {
   config.chart.renderTo.innerHTML = '';
-
-  var chartic = new Chartic(config);
-
-  return chartic;
+  return new Chartic(config);
 }
 
 // ================================================================================================================= //
@@ -623,7 +620,7 @@ function ChartSeries(series, config) {
  *
  * @constructor ChartSeriesLine
  *
- * @param series: object
+ * @param series: object[]
  * @param config: object
  */
 function ChartSeriesLine(series, config) {
@@ -634,7 +631,42 @@ function ChartSeriesLine(series, config) {
   this.config = config;
   this.series = series;
 
-  var chartSeries = this.series
+  var chartSeriesAttrs = makeSeriesPaths(this.config, { x1: .1, x2: .9, y1: 0, y2: 0 });
+  var pathElements = chartSeriesAttrs.map(function (attr) {
+    return createSVGElement('path', attr);
+  });
+
+  eventAggregator.subscribe('selectRange', function (newRanges) {
+    var chartSeriesAttrs = makeSeriesPaths(this.config, newRanges);
+    chartSeriesAttrs.map(function (attrs, i) {
+      pathElements[i].setAttribute('d', attrs.d);
+    });
+  }.bind(this));
+
+  this.containers = {};
+  this.containers.seriesLineGroup = createSVGElement('g', null, pathElements);
+}
+
+/**
+ * @description Generate series attributes with paths.
+ *
+ * @function makeSeriesPaths
+ *
+ * @param config: object
+ * @param areaSize {{
+ *   x1: number,
+ *   y1: number,
+ *   x2: number,
+ *   y2: number,
+ * }}
+ *
+ * @return attr {{
+ *   d: string,
+ *   ...
+ * }}
+ */
+function makeSeriesPaths(config, areaSize) {
+  return config.series
     .map(function (seriesItem) {
 
       return Object.assign({}, seriesItem, {
@@ -653,9 +685,16 @@ function ChartSeriesLine(series, config) {
       });
     })
     .map(function (seriesWithCoords) {
-      var minMaxX = getMinMaxOfSeriesData(this.series, 'x');
-      var minMaxY = getMinMaxOfSeriesData(this.series, 'y');
-      var areaCoords = getCoordsUnderTitle(this.config, seriesWithCoords.spacing);
+      var areaVisible = getCoordsUnderTitle(config, seriesWithCoords.spacing);
+      var areaSpacing = {
+        top: seriesWithCoords.spacing.top - ((areaSize || {}).y1 || 0) * areaVisible.innerHeight,
+        left: seriesWithCoords.spacing.left - ((areaSize || {}).x1 || 0) * areaVisible.innerWidth,
+        right: seriesWithCoords.spacing.right - (1 - ((areaSize || {}).x2 || 0)) * areaVisible.innerWidth,
+        bottom: seriesWithCoords.spacing.bottom - (1 - ((areaSize || {}).y2 || 0)) * areaVisible.innerHeight,
+      };
+      var minMaxX = getMinMaxOfSeriesData(config.series, 'x');
+      var minMaxY = getMinMaxOfSeriesData(config.series, 'y');
+      var areaCoords = getCoordsUnderTitle(config, areaSpacing);
       var defaultAttr = attrObjectToValidObject(seriesWithCoords.attr);
 
       var path = seriesWithCoords.data
@@ -666,12 +705,8 @@ function ChartSeriesLine(series, config) {
           return acc;
         }, '');
 
-      var pathAttr = Object.assign({}, defaultAttr, { d: path });
-      return createSVGElement('path', pathAttr);
+      return Object.assign({}, defaultAttr, { d: path });
     }.bind(this));
-
-  this.containers = {};
-  this.containers.seriesLineGroup = createSVGElement('g', null, chartSeries);
 }
 
 // ================================================================================================================= //
@@ -746,7 +781,7 @@ function ChartSelectArea(selectArea, config) {
 
   var innerContentCoords = getCoordsUnderTitle(this.config, this.selectArea.spacing);
 
-  var dragAreaRect = Object.assign({}, { style: dragAreaStyles, transition: '.1s ease-in-out' });
+  var dragAreaRect = Object.assign({}, { style: dragAreaStyles });
   var borderRectTop = Object.assign({}, this.selectArea.selectAttr, {
     style: borderVStyles,
     height: verticalBorderWidth + 'px',
@@ -862,7 +897,7 @@ function ChartSelectArea(selectArea, config) {
         y2: store.selectRanges.y2 + newY,
       });
       redrawSelectArea.call(that, newSelectRanges);
-    };
+    }
   }.bind(this));
 
   this.containers.bgTop = createSVGElement('rect', this.selectArea.bgAttr);
@@ -872,16 +907,20 @@ function ChartSelectArea(selectArea, config) {
 
   redrawSelectArea.call(this, this.selectArea.ranges);
 
-  function redrawSelectArea(newSelectRanges) {
+  function redrawSelectArea(newSelectRangesIn) {
     requestAnimationFrame(function () {
       if (
-        newSelectRanges.x1 < 0 || newSelectRanges.x1 > newSelectRanges.x2
-        || newSelectRanges.x2 > 1 || newSelectRanges.x2 < newSelectRanges.x1
-        || newSelectRanges.y1 < 0 || newSelectRanges.y1 > newSelectRanges.y2
-        || newSelectRanges.y2 > 1 || newSelectRanges.y2 < newSelectRanges.y1
+        newSelectRangesIn.x1 < 0 || newSelectRangesIn.x1 > newSelectRangesIn.x2
+        || newSelectRangesIn.x2 > 1 || newSelectRangesIn.x2 < newSelectRangesIn.x1
+        || newSelectRangesIn.y1 < 0 || newSelectRangesIn.y1 > newSelectRangesIn.y2
+        || newSelectRangesIn.y2 > 1 || newSelectRangesIn.y2 < newSelectRangesIn.y1
       ) {
         return;
       }
+
+      var newSelectRanges = onSelect(newSelectRangesIn) || newSelectRangesIn;
+      store.selectRanges = newSelectRanges;
+      eventAggregator.dispatch('selectRange', newSelectRanges);
 
       var relativeCoords = {
         xStart: innerContentCoords.x1,
@@ -893,9 +932,6 @@ function ChartSelectArea(selectArea, config) {
         x2: newSelectRanges.x2 * (innerContentCoords.innerWidth - horizontalBorderWidth) + innerContentCoords.x1 + horizontalBorderWidth / 2,
         y2: newSelectRanges.y2 * (innerContentCoords.innerHeight - verticalBorderWidth) + innerContentCoords.y1 + verticalBorderWidth / 2,
       };
-
-      store.selectRanges = newSelectRanges;
-      onSelect(newSelectRanges);
 
       this.containers.borderTop.style.x = relativeCoords.x1 + horizontalBorderWidth / 2;
       this.containers.borderTop.style.y = relativeCoords.y1 - verticalBorderWidth / 2;
