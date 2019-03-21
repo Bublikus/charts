@@ -133,7 +133,7 @@ function ChartTitle(title, config) {
   var titleTextAttr = Object.assign({}, attrObjectToValidObject(this.title.attr), {
     x: this.title.x + xTextAlign,
     y: this.title.y + yTextAlign,
-    style: stylesObjectToString(this.title.style),
+    style: camelCaseObjToDashString(this.title.style),
   });
 
   this.containers = {};
@@ -258,7 +258,7 @@ function ChartYAxisLine(yAxisLine, config) {
 
   var yAxisLineAttr = Object.assign({}, attrObjectToValidObject(this.yAxisLine.attr), {
     d: dOfPath,
-    style: stylesObjectToString(this.yAxisLine.style),
+    style: camelCaseObjToDashString(this.yAxisLine.style),
   });
 
   this.containers = {};
@@ -302,7 +302,7 @@ function ChartYAxisLineGrids(yAxisLineGrids, config) {
       var dOfPath = 'M ' + innerContentCoords.x1 + ',' + gridLineY + ' H ' + innerContentCoords.x2;
       var yAxisLineGridsAttr = Object.assign({}, attrObjectToValidObject(this.yAxisLineGrids.attr), {
         d: dOfPath,
-        style: stylesObjectToString(this.yAxisLineGrids.style),
+        style: camelCaseObjToDashString(this.yAxisLineGrids.style),
       });
       return createSVGElement('path', yAxisLineGridsAttr);
     }.bind(this));
@@ -361,7 +361,7 @@ function ChartYAxisLabels(yAxisLabels, config) {
       var yAxisLineGridsAttr = Object.assign({}, attrObjectToValidObject(this.yAxisLineLabels.attr), {
         x: innerLabelsContentCoords.x1 + this.yAxisLineLabels.x,
         y: labelY + this.yAxisLineLabels.y,
-        style: stylesObjectToString(this.yAxisLineLabels.style),
+        style: camelCaseObjToDashString(this.yAxisLineLabels.style),
       });
 
       return createSVGElement('text', yAxisLineGridsAttr, labelText);
@@ -448,7 +448,7 @@ function ChartXAxisLine(xAxisLine, config) {
 
   var xAxisLineAttr = Object.assign({}, attrObjectToValidObject(this.xAxisLine.attr), {
     d: dOfPath,
-    style: stylesObjectToString(this.xAxisLine.style),
+    style: camelCaseObjToDashString(this.xAxisLine.style),
   });
 
   this.containers = {};
@@ -492,7 +492,7 @@ function ChartXAxisLineGrids(xAxisLineGrids, config) {
       var dOfPath = 'M ' + gridLineX + ',' + innerContentCoords.y1 + ' V ' + innerContentCoords.y2;
       var xAxisLineGridsAttr = Object.assign({}, attrObjectToValidObject(this.xAxisLineGrids.attr), {
         d: dOfPath,
-        style: stylesObjectToString(this.xAxisLineGrids.style),
+        style: camelCaseObjToDashString(this.xAxisLineGrids.style),
       });
       return createSVGElement('path', xAxisLineGridsAttr);
     }.bind(this));
@@ -553,7 +553,7 @@ function ChartXAxisLabels(xAxisLabels, config) {
       var xAxisLineGridsAttr = Object.assign({}, attrObjectToValidObject(this.xAxisLineLabels.attr), {
         x: labelX + this.xAxisLineLabels.x,
         y: innerLabelsContentCoords.y2 + this.xAxisLineLabels.y,
-        style: stylesObjectToString(this.xAxisLineLabels.style),
+        style: camelCaseObjToDashString(this.xAxisLineLabels.style),
       });
 
       return createSVGElement('text', xAxisLineGridsAttr, labelText);
@@ -625,14 +625,35 @@ function ChartSeriesLine(series, config) {
 
   this.config = config;
   this.series = series;
+  this.clipPathId = Math.random().toString().replace('.', '');
 
   var chartSeriesAttrs = makeSeriesPaths(this.config);
 
   this.containers = {};
+  this.containers.clipRects = this.series.map(function (seriesItem) {
+    var areaCoords = getCoordsUnderTitle(config, seriesItem.spacing);
+    var rectAttr = {
+      x: areaCoords.x1,
+      y: areaCoords.y1,
+      width: areaCoords.innerWidth,
+      height: areaCoords.innerHeight,
+    };
+    return createSVGElement('rect', rectAttr);
+  }.bind(this));
   this.containers.pathElements = chartSeriesAttrs.map(function (attr) {
-    return createSVGElement('path', attr);
-  });
-  this.containers.seriesLineGroup = createSVGElement('g', null, this.containers.pathElements);
+    var pathAttr = Object.assign({}, attr, {
+      clipPath: 'url(#' + this.clipPathId + ')',
+      style: camelCaseObjToDashString({
+        transition: this.config.chart.animationDuration + 'ms ease-out',
+      }),
+    });
+    return createSVGElement('path', pathAttr);
+  }.bind(this));
+  this.containers.clipPath = createSVGElement('clipPath', { id: this.clipPathId }, this.containers.clipRects);
+  this.containers.seriesLineGroup = createSVGElement('g', null, [
+    this.containers.clipPath,
+    this.containers.pathElements,
+  ]);
 }
 
 /**
@@ -755,6 +776,9 @@ function ChartSelectArea(selectArea, config) {
 
   var chartContainer = this.config.chart.renderTo;
   var onSelect = this.selectArea.onSelect;
+  var commonStyles = {
+    transition: this.config.chart.animationDuration + 'ms ease-out',
+  };
 
   var isXZoomable = this.selectArea.type.search('x') !== -1;
   var isYZoomable = this.selectArea.type.search('y') !== -1;
@@ -762,16 +786,16 @@ function ChartSelectArea(selectArea, config) {
   var horizontalBorderWidth = isXZoomable ? 8 : 2;
   var verticalBorderWidth = isYZoomable ? 8 : 2;
 
-  var dragAreaStyles = stylesObjectToString({
+  var dragAreaStyles = camelCaseObjToDashString(Object.assign({}, commonStyles, {
     cursor: 'move',
     fill: 'transparent',
-  });
-  var borderVStyles = stylesObjectToString({
+  }));
+  var borderVStyles = camelCaseObjToDashString(Object.assign({}, commonStyles, {
     cursor: isYZoomable ? 'ns-resize' : 'default',
-  });
-  var borderHStyles = stylesObjectToString({
+  }));
+  var borderHStyles = camelCaseObjToDashString(Object.assign({}, commonStyles, {
     cursor: isXZoomable ? 'ew-resize' : 'default',
-  });
+  }));
 
   var innerContentCoords = getCoordsUnderTitle(this.config, this.selectArea.spacing);
 
@@ -791,6 +815,9 @@ function ChartSelectArea(selectArea, config) {
   var borderRectBottom = Object.assign({}, this.selectArea.selectAttr, {
     style: borderVStyles,
     height: verticalBorderWidth + 'px',
+  });
+  var bgAttrs = Object.assign({}, this.selectArea.bgAttr, {
+    style: camelCaseObjToDashString(Object.assign({}, this.selectArea.bgAttr.style, commonStyles)),
   });
 
   this.containers = {};
@@ -894,10 +921,10 @@ function ChartSelectArea(selectArea, config) {
     }
   }.bind(this));
 
-  this.containers.bgTop = createSVGElement('rect', this.selectArea.bgAttr);
-  this.containers.bgLeft = createSVGElement('rect', this.selectArea.bgAttr);
-  this.containers.bgRight = createSVGElement('rect', this.selectArea.bgAttr);
-  this.containers.bgBottom = createSVGElement('rect', this.selectArea.bgAttr);
+  this.containers.bgTop = createSVGElement('rect', bgAttrs);
+  this.containers.bgLeft = createSVGElement('rect', bgAttrs);
+  this.containers.bgRight = createSVGElement('rect', bgAttrs);
+  this.containers.bgBottom = createSVGElement('rect', bgAttrs);
 
   redrawSelectArea.call(this, this.selectArea.ranges);
 

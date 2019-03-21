@@ -49,6 +49,7 @@ function start(chartsData) {
  *   width: number,
  *   height: number,
  *   renderTo: string | HTMLElement,
+ *   animationDuration: number,
  *  },
  *  title: {
  *   enabled: boolean,
@@ -334,6 +335,7 @@ function transformChartDataToMainChartConfig(chartsData) {
  *   width: number,
  *   height: number,
  *   renderTo: string | HTMLElement,
+ *   animationDuration: number,
  *  },
  *  title: {
  *   enabled: boolean,
@@ -550,7 +552,7 @@ function transformChartDataToSubChartConfig(chartsData) {
       enabled: false,
     },
     selectArea: {
-      type: 'xy',
+      type: 'x',
       ranges: {
         x1: 0,
         y1: 0,

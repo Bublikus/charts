@@ -147,9 +147,11 @@ function createElement(tag, attr, children) {
  */
 function createSVGElement(tag, attr, children) {
   var element = document.createElementNS('http://www.w3.org/2000/svg', tag);
-  for (attrKey in attr) {
-    if (attr.hasOwnProperty(attrKey) && attr[attrKey] !== undefined && attr[attrKey] !== null) {
-      element.setAttribute(attrKey, attr[attrKey]);
+
+  var validAttr = camelCaseObjToDashObj(attr);
+  for (attrKey in validAttr) {
+    if (validAttr.hasOwnProperty(attrKey) && validAttr[attrKey] !== undefined && validAttr[attrKey] !== null) {
+      element.setAttribute(attrKey, validAttr[attrKey]);
     }
   }
 
@@ -284,15 +286,15 @@ function getEntriesFromObject(obj) {
 }
 
 /**
- * @description Makes object styles to string.
+ * @description Makes object with camel case keys to string with dashes keys.
  *
- * @function stylesObjectToString
+ * @function camelCaseObjToDashString
  *
  * @param style: object
  *
  * @return string
  */
-function stylesObjectToString(style) {
+function camelCaseObjToDashString(style) {
   if (!isObject(style)) {
     return '';
   }
@@ -302,6 +304,29 @@ function stylesObjectToString(style) {
     });
     return styleString + prop[0] + ':' + prop[1] + ';';
   }, '');
+}
+
+/**
+ * @description Makes object with camel case keys to dash keys.
+ *
+ * @function camelCaseObjToDashObj
+ *
+ * @param obj: object
+ *
+ * @return object
+ */
+function camelCaseObjToDashObj(obj) {
+  if (!isObject(obj)) {
+    return {};
+  }
+  return getEntriesFromObject(obj)
+    .reduce((acc, prop) => {
+      prop[0] = prop[0].replace(/([A-Z])/g, function (matches) {
+        return '-' + matches[0].toLowerCase();
+      });
+      acc[prop[0]] = prop[1];
+    return acc;
+  }, {});
 }
 
 /**

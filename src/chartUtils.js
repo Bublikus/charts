@@ -27,12 +27,14 @@ function getChartContainer(container) {
  *  width: number,
  *  height: number,
  *  renderTo: string | HTMLElement,
+ *  animationDuration: number,
  * }
  *
  * @return chartOptions {{
  *  width: number,
  *  height: number,
  *  renderTo: string | HTMLElement,
+ *  animationDuration: number,
  * }}
  */
 function getChartSizes(chartOptions) {

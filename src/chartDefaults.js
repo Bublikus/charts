@@ -7,6 +7,7 @@
  *   width: number,
  *   height: number,
  *   renderTo: string | HTMLElement,
+ *   animationDuration: number,
  *  },
  *  title: {
  *   enabled: boolean,
@@ -206,6 +207,7 @@ var chartDefaults = {
     width: 0,
     height: 0,
     renderTo: null,
+    animationDuration: 150,
   },
   title: {
     enabled: true,
