@@ -359,9 +359,9 @@ var chartDefaults = {
       fill: 'rgba(0,0,0,.2)',
     },
     ranges: {
-      x1: .1,
+      x1: 0,
       y1: 0,
-      x2: .9,
+      x2: 1,
       y2: 1,
     },
     spacing: {
@@ -371,7 +371,6 @@ var chartDefaults = {
       bottom: 50,
     },
     onSelect: function (coords) {
-      console.log(coords);
       return coords;
     },
   },

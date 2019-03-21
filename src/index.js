@@ -24,8 +24,17 @@ function start(chartsData) {
     doChart(subChartConfig, chartDefaults);
   });
 
-  doChart(mainChartConfig, chartDefaults);
+  var mainChart = doChart(mainChartConfig, chartDefaults);
   doChart(subChartConfig, chartDefaults);
+
+  eventAggregator.subscribe('selectRange', function (newRanges) {
+    var newConfig = mergeObjectSave(chartDefaults, mainChartConfig);
+    newConfig.chart = getChartSizes(newConfig.chart);
+    var chartSeriesAttrs = makeSeriesPaths(newConfig, newRanges);
+    chartSeriesAttrs.map(function (attrs, i) {
+      mainChart.series.seriesLine.containers.pathElements[i].setAttribute('d', attrs.d);
+    });
+  });
 }
 
 /**
@@ -542,6 +551,12 @@ function transformChartDataToSubChartConfig(chartsData) {
     },
     selectArea: {
       type: 'xy',
+      ranges: {
+        x1: 0,
+        y1: 0,
+        x2: 1,
+        y2: 1,
+      },
       bgAttr: {
         fill: theme.selectFrameOutOverlay,
       },

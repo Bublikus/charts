@@ -19,6 +19,32 @@ function getChartContainer(container) {
 }
 
 /**
+ * @description Get chart sizes.
+ *
+ * @function getChartSizes
+ *
+ * @param chartOptions: {
+ *  width: number,
+ *  height: number,
+ *  renderTo: string | HTMLElement,
+ * }
+ *
+ * @return chartOptions {{
+ *  width: number,
+ *  height: number,
+ *  renderTo: string | HTMLElement,
+ * }}
+ */
+function getChartSizes(chartOptions) {
+  var renderTo = getChartContainer(chartOptions.renderTo);
+  return Object.assign({}, chartOptions, {
+    renderTo: renderTo,
+    width: chartOptions.width || renderTo.offsetWidth,
+    height: chartOptions.height || renderTo.offsetHeight,
+  });
+}
+
+/**
  * @description Gets min and max values from {prop} in "data" of "series".
  *
  * @function getMinMaxOfSeriesData

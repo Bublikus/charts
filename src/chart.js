@@ -6,27 +6,22 @@
  * @param config: object
  * @param defaultConfig: object
  *
- * @return void
+ * @return chart: object
  */
 function doChart(config, defaultConfig) {
   var newConfig = mergeObjectSave(defaultConfig, config);
-  newConfig.chart.renderTo = getChartContainer(newConfig.chart.renderTo);
-  newConfig.chart.width = newConfig.chart.width || newConfig.chart.renderTo.offsetWidth;
-  newConfig.chart.height = newConfig.chart.height || newConfig.chart.renderTo.offsetHeight;
-
-  // Entry draw.
-  var chart = drawChart(newConfig);
+  newConfig.chart = getChartSizes(newConfig.chart);
 
   // Redraw on window resize.
   window.addEventListener('resize', function () {
     var redrawConfig = mergeObjectSave(defaultConfig, config);
-    redrawConfig.chart.renderTo = getChartContainer(redrawConfig.chart.renderTo);
-    redrawConfig.chart.width = redrawConfig.chart.width || redrawConfig.chart.renderTo.offsetWidth;
-    redrawConfig.chart.height = redrawConfig.chart.height || redrawConfig.chart.renderTo.offsetHeight;
+    redrawConfig.chart = getChartSizes(newConfig.chart);
     requestAnimationFrame(function () {
       drawChart(redrawConfig);
     });
   });
+
+  return drawChart(newConfig);
 }
 
 /**
@@ -631,20 +626,13 @@ function ChartSeriesLine(series, config) {
   this.config = config;
   this.series = series;
 
-  var chartSeriesAttrs = makeSeriesPaths(this.config, { x1: .1, x2: .9, y1: 0, y2: 0 });
-  var pathElements = chartSeriesAttrs.map(function (attr) {
-    return createSVGElement('path', attr);
-  });
-
-  eventAggregator.subscribe('selectRange', function (newRanges) {
-    var chartSeriesAttrs = makeSeriesPaths(this.config, newRanges);
-    chartSeriesAttrs.map(function (attrs, i) {
-      pathElements[i].setAttribute('d', attrs.d);
-    });
-  }.bind(this));
+  var chartSeriesAttrs = makeSeriesPaths(this.config);
 
   this.containers = {};
-  this.containers.seriesLineGroup = createSVGElement('g', null, pathElements);
+  this.containers.pathElements = chartSeriesAttrs.map(function (attr) {
+    return createSVGElement('path', attr);
+  });
+  this.containers.seriesLineGroup = createSVGElement('g', null, this.containers.pathElements);
 }
 
 /**
@@ -686,11 +674,17 @@ function makeSeriesPaths(config, areaSize) {
     })
     .map(function (seriesWithCoords) {
       var areaVisible = getCoordsUnderTitle(config, seriesWithCoords.spacing);
+      var safeArea = {
+        x1: getNumber((areaSize || {}).x1, 0),
+        y1: getNumber((areaSize || {}).y1, 0),
+        x2: getNumber((areaSize || {}).x2, 1),
+        y2: getNumber((areaSize || {}).y2, 1),
+      };
       var areaSpacing = {
-        top: seriesWithCoords.spacing.top - ((areaSize || {}).y1 || 0) * areaVisible.innerHeight,
-        left: seriesWithCoords.spacing.left - ((areaSize || {}).x1 || 0) * areaVisible.innerWidth,
-        right: seriesWithCoords.spacing.right - (1 - ((areaSize || {}).x2 || 0)) * areaVisible.innerWidth,
-        bottom: seriesWithCoords.spacing.bottom - (1 - ((areaSize || {}).y2 || 0)) * areaVisible.innerHeight,
+        top: seriesWithCoords.spacing.top - safeArea.y1 * areaVisible.innerHeight / (safeArea.y2 - safeArea.y1),
+        left: seriesWithCoords.spacing.left - safeArea.x1 * areaVisible.innerWidth / (safeArea.x2 - safeArea.x1),
+        right: seriesWithCoords.spacing.right - (1 - safeArea.x2) * areaVisible.innerWidth / (safeArea.x2 - safeArea.x1),
+        bottom: seriesWithCoords.spacing.bottom - (1 - safeArea.y2) * areaVisible.innerHeight / (safeArea.y2 - safeArea.y1),
       };
       var minMaxX = getMinMaxOfSeriesData(config.series, 'x');
       var minMaxY = getMinMaxOfSeriesData(config.series, 'y');

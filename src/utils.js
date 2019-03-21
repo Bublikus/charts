@@ -57,6 +57,33 @@ function isArray(obj) {
 }
 
 /**
+ * @description Check is property number.
+ *
+ * @function isNumber
+ *
+ * @param obj: any
+ *
+ * @return {boolean}
+ */
+function isNumber(obj) {
+  return Number.isFinite(obj);
+}
+
+/**
+ * @description Get number from any.
+ *
+ * @function getNumber
+ *
+ * @param obj: any
+ *
+ * @param defaultNumber
+ * @return {number}
+ */
+function getNumber(obj, defaultNumber) {
+  return isNumber(obj) ? obj : defaultNumber || 0;
+}
+
+/**
  * @description Check is property boolean.
  *
  * @function isBoolean
