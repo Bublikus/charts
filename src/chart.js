@@ -1239,7 +1239,13 @@ function ChartSelectArea(selectArea, config) {
  * @constructor ChartLegend
  *
  * @param legend {{
- *
+ *  enabled: boolean,
+ *  spacing: {
+ *   top: number,
+ *   left: number,
+ *   right: number,
+ *   bottom: number
+ *  },
  * }}
  * @param config: object
  */
@@ -1247,6 +1253,156 @@ function ChartLegend(legend, config) {
   this.config = config;
   this.legend = legend;
 
+  var legendItems = generateLegends(this.config, this.legend);
+
+  eventAggregator.subscribe('legendClick', function (storeLegend) {
+    Object.keys(storeLegend).map(function (legendName, index) {
+      var checkedIndexes = this.config.series.reduce(function (acc, item, i) {
+        return acc.concat(storeLegend[legendName] ? i : []);
+      }, []);
+      this.containers.unCheckCircle[index].setAttribute('r', checkedIndexes.indexOf(index) !== -1 ? 10 : 0);
+    }.bind(this));
+  }.bind(this));
+
   this.containers = {};
-  this.containers.legendGroup = createSVGElement('g', null, []);
+  this.containers.unCheckCircle = legendItems.map(function (legendItem) {
+    return legendItem.unCheckCircle;
+  });
+  this.containers.legendItems = legendItems.map(function (legendItem) {
+    return legendItem.group;
+  });
+  this.containers.legendGroup = createSVGElement('g', null, this.containers.legendItems);
 }
+
+/**
+ * @description Generate legend.
+ *
+ * @function generateLegends
+ *
+ * @param config: object
+ * @param legend: {
+ *  enabled: boolean,
+ *  spacing: {
+ *   top: number,
+ *   left: number,
+ *   right: number,
+ *   bottom: number
+ *  },
+ * }
+ *
+ * @return {object[]}
+ */
+function generateLegends(config, legend) {
+  return config.series.map(function (seriesItem, i) {
+    var textSize = getTextSize(seriesItem.name);
+    var x = legend.spacing.left + i * (textSize.width + 60 + 10);
+    var y = config.chart.height - legend.spacing.top - legend.spacing.bottom - 35;
+    function callbackClick() {
+      var isUncheck = !store.legend[seriesItem.name];
+      store.legend = Object.assign({}, store.legend, { [seriesItem.name]: isUncheck });
+      eventAggregator.dispatch('legendClick', store.legend);
+    }
+    return legendTemplate(x, y, seriesItem.name, seriesItem.color, !store.legend[seriesItem.name], callbackClick);
+  }.bind(this));
+}
+
+/**
+ * @description Generate a legend item template.
+ *
+ * @function legendTemplate
+ *
+ * @param x: number
+ * @param y: number
+ * @param text: string
+ * @param color: string
+ * @param isCheck: boolean
+ * @param callback: Function
+ *
+ * @return {SVGElement}
+ */
+function legendTemplate(x, y, text, color, isCheck, callback) {
+  var textSize = getTextSize(text);
+  var legendHeight = 35;
+  var legendWidth = textSize.width + 60;
+
+  var rectAttr = {
+    x: x,
+    y: y,
+    height: legendHeight,
+    width: legendWidth,
+    rx: legendHeight / 2,
+    ry: legendHeight / 2,
+    strokeWidth: 1,
+    stroke: 'grey',
+    fill: 'transparent',
+    style: camelCaseObjToDashString({
+      cursor: 'pointer',
+    })
+  };
+  var circleAttr = {
+    cx: x + 20,
+    cy: y + legendHeight / 2,
+    r: 10,
+    fill: color,
+    stroke: color,
+    strokeWidth: 3,
+  };
+  var textAttr = {
+    x: x + 40,
+    y: y + legendHeight / 2,
+    dominantBaseline: 'middle',
+    style: camelCaseObjToDashString({
+      userSelect: 'none',
+    }),
+  };
+  var checkStateAttr1 = {
+    x: x + 15,
+    y: y + legendHeight / 2,
+    height: 3,
+    width: 7,
+    fill: 'white',
+  };
+  var checkStateAttr2 = {
+    x: x + 15 + 4,
+    y: y + legendHeight / 2 - 8,
+    height: 8,
+    width: 3,
+    fill: 'white',
+  };
+  var checkStateGroupAttr = {
+    style: camelCaseObjToDashString({
+      transformOrigin: (x + 15 + 2) + 'px ' + (y + legendHeight / 2) + 'px',
+      transform: 'rotateZ(45deg)'
+    })
+  };
+  var unCheckCircleAttr = {
+    cx: x + 20,
+    cy: y + legendHeight / 2,
+    r: isCheck ? 0 : 10,
+    fill: 'white',
+    stroke: 'transparent',
+    strokeWidth: 3,
+    style: camelCaseObjToDashString({
+      transition: '150ms ease-out',
+    }),
+  };
+
+  var containers = {};
+  containers.rect = createSVGElement('rect', rectAttr);
+  containers.rect.onclick = callback;
+  containers.circle = createSVGElement('circle', circleAttr);
+  containers.textElement = createSVGElement('text', textAttr, text);
+  containers.checkState1 = createSVGElement('rect', checkStateAttr1);
+  containers.checkState2 = createSVGElement('rect', checkStateAttr2);
+  containers.unCheckCircle = createSVGElement('circle', unCheckCircleAttr);
+  containers.checkStateGroup = createSVGElement('g', checkStateGroupAttr, [containers.checkState1, containers.checkState2]);
+  containers.group = createSVGElement('g', null, [
+    containers.circle,
+    containers.textElement,
+    containers.checkStateGroup,
+    containers.unCheckCircle,
+    containers.rect,
+  ]);
+
+  return containers;
+};

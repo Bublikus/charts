@@ -26,6 +26,10 @@
  *   x2: number,
  *   y2: number,
  *  },
+ *
+ *  legend: {
+ *   [name]: boolean,
+ *  },
  * }}
  */
 var store = {
@@ -38,5 +42,8 @@ var store = {
     y1: 0,
     x2: 1,
     y2: 1,
+  },
+  legend: {
+
   },
 };

@@ -458,3 +458,32 @@ function formatDate(timestamp) {
   var monthIndex = date.getMonth();
   return monthNames[monthIndex] + ' ' + day;
 }
+
+/**
+ * @description Get height and width of text.
+ *
+ * @function getTextSize
+ *
+ * @param text: string
+ *
+ * @return {{width: number, height: number}}
+ */
+function getTextSize(text) {
+  var div = createElement('div', {
+    style: camelCaseObjToDashString({
+      position: 'absolute',
+      visibility: 'hidden',
+      height: 'auto',
+      width: 'auto',
+      whiteSpace: 'nowrap',
+    }),
+  }, text);
+  document.body.appendChild(div);
+  var width = div.clientWidth;
+  var height = div.clientHeight;
+  document.body.removeChild(div);
+  return {
+    width: width,
+    height: height,
+  };
+}

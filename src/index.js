@@ -331,7 +331,9 @@ function transformChartDataToMainChartConfig(chartsData) {
         top: 30,
       },
     },
-    legend: {},
+    legend: {
+      enabled: false,
+    },
     series: series
       .map(function (seriesItem) {
         return Object.assign({}, seriesItem, {
@@ -593,7 +595,7 @@ function transformChartDataToSubChartConfig(chartsData) {
       },
       spacing: {
         top: 10,
-        bottom: 10,
+        bottom: 100,
       },
     },
     series: series
@@ -601,7 +603,7 @@ function transformChartDataToSubChartConfig(chartsData) {
         return Object.assign({}, seriesItem, {
           spacing: {
             top: 10,
-            bottom: 10,
+            bottom: 100,
           },
         });
       }),
@@ -690,6 +692,8 @@ function getSeries(chartData) {
 
       return {
         type: type,
+        name: name,
+        color: color,
         data: data,
         attr: {
           stroke: color,

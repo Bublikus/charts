@@ -147,6 +147,12 @@
  *  },
  *  legend: {
  *   enabled: boolean,
+ *   spacing: {
+ *    top: number,
+ *    left: number,
+ *    right: number,
+ *    bottom: number
+ *   },
  *  },
  *  selectArea: {
  *   type: 'x' | 'y' | 'xy',
@@ -184,6 +190,7 @@
  *  series: {
  *   type: 'line',
  *   name: string,
+ *   color: string,
  *   spacing: {
  *    top: number,
  *    left: number,
@@ -384,7 +391,9 @@ var chartDefaults = {
     },
   },
   series: [{
+    type: '',
     name: '',
+    color: '',
     spacing: {
       top: 15,
       left: 30,

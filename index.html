@@ -17,7 +17,7 @@
             height: 60vh;
         }
         #subChart {
-            height: 15vh;
+            height: 25vh;
         }
         .switch-button-container {
             text-align: center;
@@ -35,84 +35,15 @@
 <body>
     <div id="root"></div>
 
-    <!-- Config
-    {
-        appConfig: { [configKey: string]: any },
-    }
-    -->
     <script src="src/config.js"></script>
-
-    <!-- Colors constants
-    {
-        colors: { [colorName: string]: string },
-    }
-    -->
     <script src="src/colors.js"></script>
-
-    <!-- Themes of the charts
-    {
-        themeDay: { [elementType: string]: string },
-        themeNight: { [elementType: string]: string },
-    }
-    -->
     <script src="src/themes.js"></script>
-
-    <!-- Store of the app
-    {
-        store: { [storeKey: string]: any },
-    }
-    -->
     <script src="src/store.js"></script>
-
-    <!-- Utils
-    {
-        getJson(pathToJsonFile: string): Promise<JSON>,                             // Get data of JSON file. (Data of charts)
-        createElement(tag: string, attr: object, children: any): HTMLElement,      // Create a HTML element.
-        createSVGElement(tag: string, attr: object, children: any): SVGElement,    // Create a SVG element.
-        eventAggregator: {                                                          // Dispatch and subscribe on app store.
-            dispatch(eventName: string, eventArgs: any): void,
-            subscribe(eventName: string, handler: Function): void,
-        },
-        isElement(obj: any): boolean,                                               // Returns true if it is a DOM element.
-        isNode(obj: any): boolean,                                                  // Returns true if it is a NODE.
-    }
-    -->
     <script src="src/utils.js"></script>
-
-    <!-- Make containers for charts and switch button
-    {
-        makeContainers(): void,                         // Create HTML containers.
-        onSwitchTheme(theme?: 'day' | 'night'): void,   // Switch themes and change button's text.
-    }
-    -->
     <script src="src/makeContainers.js"></script>
-
-    <!-- Chart default config
-    {
-        chartDefaults: object
-    }
-    -->
     <script src="src/chartDefaults.js"></script>
-
-    <!-- Chart utils
-    {
-        getChartContainer(container: any): HTMLElement  // Get chart container for "renderTo".
-        getMinMaxOfSeriesData(                          // Gets min and max values from {prop} in "data" of "series".
-            series: { data: { [prop]: number }[] }[],
-            prop: string,
-        ): { min: number, max: number }
-    }
-    -->
     <script src="src/chartUtils.js"></script>
-
-    <!-- Chart
-    {
-        doChart(config: object): object
-    }
-    -->
     <script src="src/chart.js"></script>
-
-    <!-- Index -->
     <script src="src/index.js"></script>
 </body>
 </html>
