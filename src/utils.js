@@ -97,6 +97,68 @@ function isBoolean(obj) {
 }
 
 /**
+ * @description Apply object of camelCase attributes to element.
+ *
+ * @function applyAttrsToElement
+ *
+ * @param element: Node
+ * @param attr: object
+ *
+ * @return void
+ */
+function applyAttrsToElement(element, attr) {
+  for (attrKey in attr) {
+    if (attr.hasOwnProperty(attrKey) && attr[attrKey] !== undefined && attr[attrKey] !== null) {
+      element[attrKey] = attr[attrKey];
+    }
+  }
+}
+
+/**
+ * @description Apply object of camelCase attributes to SVG element.
+ *
+ * @function applyAttrsToSVGElement
+ *
+ * @param element: Node
+ * @param attr: object
+ *
+ * @return void
+ */
+function applyAttrsToSVGElement(element, attr) {
+  var validAttr = camelCaseObjToDashObj(attr);
+  for (attrKey in validAttr) {
+    if (validAttr.hasOwnProperty(attrKey) && validAttr[attrKey] !== undefined && validAttr[attrKey] !== null) {
+      element.setAttribute(attrKey, validAttr[attrKey]);
+    }
+  }
+}
+
+/**
+ * @description Append children to element container
+ *
+ * @function appendChildrenToContainer
+ *
+ * @param container: Node
+ * @param children: Node | Node[] | string | string[] | number | number[]
+ *
+ * @return void
+ */
+function appendChildrenToContainer(container, children) {
+  var arrayOfChildren = [].slice.call(arguments, 1);
+  arrayOfChildren.forEach(function (child) {
+    if (Array.isArray(child)) {
+      return appendChildrenToContainer.apply(null, [container].concat(child));
+    }
+    var childrenElement = !isBoolean(child) && child !== undefined && child !== null && (
+      isNode(child)
+        ? child
+        : document.createTextNode(child && child.toString())
+    );
+    childrenElement && container.appendChild(childrenElement);
+  });
+}
+
+/**
  * @description Create element util.
  *
  * @function createElement
@@ -108,30 +170,11 @@ function isBoolean(obj) {
  * @return HTMLElement
  */
 function createElement(tag, attr, children) {
-  var element = document.createElement(tag);
-  for (attrKey in attr) {
-    if (attr.hasOwnProperty(attrKey) && attr[attrKey] !== undefined && attr[attrKey] !== null) {
-      element[attrKey] = attr[attrKey];
-    }
-  }
-
-  function appendRecursivelyArrayOfChildren(childrenElements, container) {
-    childrenElements.forEach(function (child) {
-      if (Array.isArray(child)) {
-        return appendRecursivelyArrayOfChildren(child, container);
-      }
-      var childrenElement = !isBoolean(child) && child !== undefined && child !== null && (
-        isNode(child)
-          ? child
-          : document.createTextNode(child && child.toString())
-      );
-      childrenElement && container.appendChild(childrenElement);
-    });
-  }
-
+  var container = document.createElement(tag);
   var arrayOfChildren = [].slice.call(arguments, 2);
-  appendRecursivelyArrayOfChildren(arrayOfChildren, element);
-  return element;
+  applyAttrsToElement(container, attr);
+  appendChildrenToContainer(container, arrayOfChildren);
+  return container;
 }
 
 /**
@@ -146,32 +189,11 @@ function createElement(tag, attr, children) {
  * @return SVGElement
  */
 function createSVGElement(tag, attr, children) {
-  var element = document.createElementNS('http://www.w3.org/2000/svg', tag);
-
-  var validAttr = camelCaseObjToDashObj(attr);
-  for (attrKey in validAttr) {
-    if (validAttr.hasOwnProperty(attrKey) && validAttr[attrKey] !== undefined && validAttr[attrKey] !== null) {
-      element.setAttribute(attrKey, validAttr[attrKey]);
-    }
-  }
-
-  function appendRecursivelyArrayOfChildren(childrenElements, container) {
-    childrenElements.forEach(function (child) {
-      if (Array.isArray(child)) {
-        return appendRecursivelyArrayOfChildren(child, container);
-      }
-      var childrenElement = !isBoolean(child) && child !== undefined && child !== null && (
-        isNode(child)
-          ? child
-          : document.createTextNode(child && child.toString())
-      );
-      childrenElement && container.appendChild(childrenElement);
-    });
-  }
-
+  var container = document.createElementNS('http://www.w3.org/2000/svg', tag);
   var arrayOfChildren = [].slice.call(arguments, 2);
-  appendRecursivelyArrayOfChildren(arrayOfChildren, element);
-  return element;
+  applyAttrsToSVGElement(container, attr);
+  appendChildrenToContainer(container, arrayOfChildren);
+  return container;
 }
 
 /**

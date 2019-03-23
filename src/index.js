@@ -30,9 +30,29 @@ function start(chartsData) {
   eventAggregator.subscribe('selectRange', function (newRanges) {
     var newConfig = mergeObjectSave(chartDefaults, mainChartConfig);
     newConfig.chart = getChartSizes(newConfig.chart);
+
     var chartSeriesAttrs = makeSeriesPaths(newConfig, newRanges);
-    chartSeriesAttrs.map(function (attrs, i) {
-      mainChart.series.seriesLine.containers.pathElements[i].setAttribute('d', attrs.d);
+    chartSeriesAttrs.forEach(function (attrs, i) {
+      applyAttrsToSVGElement(mainChart.series.seriesLine.containers.pathElements[i], { d: attrs.d });
+    });
+
+    var xAxisLabels = generateXLabelsProps(newConfig, newRanges);
+    xAxisLabels.forEach(function (labelProps, i) {
+      mainChart.xAxis.xAxisLabels.containers.xAxisLabels[i].innerHTML = '';
+      appendChildrenToContainer(mainChart.xAxis.xAxisLabels.containers.xAxisLabels[i], labelProps.children);
+      applyAttrsToSVGElement(mainChart.xAxis.xAxisLabels.containers.xAxisLabels[i], labelProps.attr);
+    });
+
+    var yAxisLabels = generateYLabelsProps(newConfig, newRanges);
+    yAxisLabels.forEach(function (labelProps, i) {
+      mainChart.yAxis.yAxisLabels.containers.yAxisLabels[i].innerHTML = '';
+      appendChildrenToContainer(mainChart.yAxis.yAxisLabels.containers.yAxisLabels[i], labelProps.children);
+      applyAttrsToSVGElement(mainChart.yAxis.yAxisLabels.containers.yAxisLabels[i], labelProps.attr);
+    });
+
+    var yAxisGridLineAttr = generateYAxisGridLineAttr(newConfig, newRanges);
+    yAxisGridLineAttr.forEach(function (attr, i) {
+      applyAttrsToSVGElement(mainChart.yAxis.yAxisLineGrids.containers.yAxisLineGrids[i], attr);
     });
   });
 }
@@ -558,7 +578,7 @@ function transformChartDataToSubChartConfig(chartsData) {
       }
     },
     selectArea: {
-      type: 'x',
+      type: 'xy',
       ranges: {
         x1: .3,
         y1: 0,

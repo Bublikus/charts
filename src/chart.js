@@ -43,7 +43,7 @@ function drawChart(config) {
 // ================================================================================================================= //
 
 /**
- * @description Chartic class.
+ * @description Chart class.
  *
  * @constructor Chartic
  *
@@ -51,6 +51,7 @@ function drawChart(config) {
  */
 function Chartic(config) {
   this.config = config;
+  this.config.id = Math.random().toString().replace('.', '');
 
   this.title = new ChartTitle(this.config.title, this.config);
   this.xAxis = new ChartXAxis(this.config.xAxis, this.config);
@@ -135,7 +136,7 @@ function ChartTitle(title, config) {
   var titleTextAttr = Object.assign({}, attrObjectToValidObject(this.title.attr), {
     x: this.title.x + xTextAlign,
     y: this.title.y + yTextAlign,
-    style: camelCaseObjToDashString(this.title.style),
+    style: camelCaseObjToDashString(Object.assign({}, { userSelect: 'none' }, this.title.style)),
   });
 
   this.containers = {};
@@ -145,232 +146,6 @@ function ChartTitle(title, config) {
     this.containers.titleRect,
     this.containers.titleText,
   ]);
-}
-
-// ================================================================================================================= //
-// ================================================== CHART Y AXIS ================================================= //
-// ================================================================================================================= //
-
-/**
- * @description Make a chart yAxis.
- *
- * @constructor ChartYAxis
- *
- * @param yAxis {{
- *  enabled: boolean,
- *  ticksAmount: number,
- *  spacing: {
- *   top: number,
- *   left: number,
- *   right: number,
- *   bottom: number
- *  },
- *  line: {
- *   enabled: boolean,
- *   x: number,
- *   y: number,
- *   attr: {
- *    stroke: string,
- *    strokeWidth: number,
- *    strokeDasharray: string,
- *   },
- *   style: {
- *
- *   }
- *  },
- *  gridLine: {
- *   enabled: boolean,
- *   x: number,
- *   y: number,
- *   attr: {
- *    stroke: string,
- *    strokeWidth: number,
- *    strokeDasharray: string,
- *   },
- *   style: {
- *
- *   },
- *  },
- *  labels: {
- *   enabled: boolean,
- *   x: number,
- *   y: number,
- *   formatter(step: number, index: number, config: object): (number | string | Node),
- *   spacing: {
- *    top: number,
- *    left: number,
- *    right: number,
- *    bottom: number
- *   },
- *   attr: {
- *    fill: string,
- *    textAnchor: 'start' | 'middle' | 'end',
- *    dominantBaseline: 'hanging' | 'middle' | 'baseline',
- *   },
- *   style: {
- *    fontSize: number,
- *    fontWeight: number | string,
- *   },
- *  }
- * }}
- * @param config: object
- */
-function ChartYAxis(yAxis, config) {
-  this.config = config;
-  this.yAxis = yAxis;
-
-  this.yAxisLine = new ChartYAxisLine(this.yAxis.line, this.config);
-  this.yAxisLabels = new ChartYAxisLabels(this.yAxis.labels, this.config);
-  this.yAxisLineGrids = new ChartYAxisLineGrids(this.yAxis.gridLine, this.config);
-
-  this.containers = {};
-  this.containers.yAxisGroup = createSVGElement('g', null, [
-    this.yAxis.line.enabled && this.yAxisLine.containers && this.yAxisLine.containers.yAxisLine,
-    this.yAxis.labels.enabled && this.yAxisLabels.containers && this.yAxisLabels.containers.yAxisLabels,
-    this.yAxis.gridLine.enabled && this.yAxisLineGrids.containers && this.yAxisLineGrids.containers.yAxisLineGrids,
-  ]);
-}
-
-/**
- * @description Create yAxis line.
- *
- * @constructor ChartYAxisLine
- *
- * @param yAxisLine {{
- *  enabled: boolean,
- *  x: number,
- *  y: number,
- *  attr: {
- *   stroke: string,
- *   strokeWidth: number,
- *   strokeDasharray: string,
- *  },
- *  style: {
- *
- *  }
- * }},
- * @param config: object
- */
-function ChartYAxisLine(yAxisLine, config) {
-  this.config = config;
-  this.yAxisLine = yAxisLine;
-
-  var innerContentCoords = getCoordsUnderTitle(this.config, this.config.yAxis.spacing);
-  var dOfPath = 'M ' + innerContentCoords.x1 + ',' + innerContentCoords.y1 + ' V ' + innerContentCoords.y2;
-
-  var yAxisLineAttr = Object.assign({}, attrObjectToValidObject(this.yAxisLine.attr), {
-    d: dOfPath,
-    style: camelCaseObjToDashString(this.yAxisLine.style),
-  });
-
-  this.containers = {};
-  this.containers.yAxisLine = createSVGElement('path', yAxisLineAttr);
-}
-
-/**
- * @description Create yAxis line grids.
- *
- * @constructor ChartYAxisLineGrids
- *
- * @param yAxisLineGrids {{
- *  enabled: boolean,
- *  x: number,
- *  y: number,
- *  attr: {
- *   stroke: string,
- *   strokeWidth: number,
- *   strokeDasharray: string,
- *  },
- *  style: {
- *
- *  },
- * }}
- * @param config: object
- */
-function ChartYAxisLineGrids(yAxisLineGrids, config) {
-  this.config = config;
-  this.yAxisLineGrids = yAxisLineGrids;
-
-  var innerContentCoords = getCoordsUnderTitle(this.config, this.config.yAxis.spacing);
-
-  var yAxisLineGridsArray = new Array(this.config.yAxis.ticksAmount)
-    .fill(0)
-    .map(function (_val, index) {
-      return index + 1;
-    })
-    .filter(Boolean)
-    .map(function (index) {
-      var gridLineY = innerContentCoords.y2 - index * (innerContentCoords.innerHeight / this.config.yAxis.ticksAmount);
-      var dOfPath = 'M ' + innerContentCoords.x1 + ',' + gridLineY + ' H ' + innerContentCoords.x2;
-      var yAxisLineGridsAttr = Object.assign({}, attrObjectToValidObject(this.yAxisLineGrids.attr), {
-        d: dOfPath,
-        style: camelCaseObjToDashString(this.yAxisLineGrids.style),
-      });
-      return createSVGElement('path', yAxisLineGridsAttr);
-    }.bind(this));
-
-  this.containers = {};
-  this.containers.yAxisLineGrids = createSVGElement('g', null, yAxisLineGridsArray);
-}
-
-/**
- * @description Create yAxis labels.
- *
- * @constructor ChartYAxisLabels
- *
- * @param yAxisLabels {{
- *  enabled: boolean,
- *  x: number,
- *  y: number,
- *  formatter(step: number, index: number, config: object): (number | string | Node),
- *  spacing: {
- *   top: number,
- *   left: number,
- *   right: number,
- *   bottom: number
- *  },
- *  attr: {
- *   fill: string,
- *   textAnchor: 'start' | 'middle' | 'end',
- *   dominantBaseline: 'hanging' | 'middle' | 'baseline',
- *  },
- *  style: {
- *   fontSize: number,
- *   fontWeight: number | string,
- *  },
- * }},
- * @param config: object
- */
-function ChartYAxisLabels(yAxisLabels, config) {
-  this.config = config;
-  this.yAxisLineLabels = yAxisLabels;
-
-  var innerLabelsContentCoords = getCoordsUnderTitle(this.config, {
-    top: this.config.yAxis.spacing.top + this.config.yAxis.labels.spacing.top,
-    left: this.config.yAxis.spacing.left + this.config.yAxis.labels.spacing.left,
-    right: this.config.yAxis.spacing.right + this.config.yAxis.labels.spacing.right,
-    bottom: this.config.yAxis.spacing.bottom + this.config.yAxis.labels.spacing.bottom,
-  });
-
-  var yAxisLineLabelsArray = new Array(this.config.yAxis.ticksAmount + 1) // +1 for displaying label on last line
-    .fill(0)
-    .map(function (_tickVal, index) {
-      var minMaxY = getMinMaxOfSeriesData(this.config.series, 'y');
-      var labelTextStep = (minMaxY.max - Math.min(minMaxY.min, 0)) / this.config.yAxis.ticksAmount;
-      var labelText = this.yAxisLineLabels.formatter(Math.round(labelTextStep * index), index, this.config);
-      var labelY = innerLabelsContentCoords.y2 - index * (innerLabelsContentCoords.y2 - innerLabelsContentCoords.y1) / this.config.yAxis.ticksAmount;
-
-      var yAxisLineGridsAttr = Object.assign({}, attrObjectToValidObject(this.yAxisLineLabels.attr), {
-        x: innerLabelsContentCoords.x1 + this.yAxisLineLabels.x,
-        y: labelY + this.yAxisLineLabels.y,
-        style: camelCaseObjToDashString(this.yAxisLineLabels.style),
-      });
-
-      return createSVGElement('text', yAxisLineGridsAttr, labelText);
-    }.bind(this));
-
-  this.containers = {};
-  this.containers.yAxisLabels = createSVGElement('g', null, yAxisLineLabelsArray);
 }
 
 // ================================================================================================================= //
@@ -413,10 +188,24 @@ function ChartXAxis(xAxis, config) {
   this.xAxisLabels = new ChartXAxisLabels(this.xAxis.labels, this.config);
   this.xAxisLineGrids = new ChartXAxisLineGrids(this.xAxis.gridLine, this.config);
 
+  var clipId = this.config.id + '_xAxis-visible-area-id';
+  var areaCoords = getCoordsUnderTitle(config, Object.assign({}, this.xAxis.spacing, {
+    bottom: 0,
+  }));
+  var rectAttr = {
+    x: areaCoords.x1,
+    y: areaCoords.y1,
+    width: areaCoords.innerWidth,
+    height: areaCoords.innerHeight,
+  };
+
   this.containers = {};
+  this.containers.clipRects = createSVGElement('rect', rectAttr);
+  this.containers.clipPath = createSVGElement('clipPath', { id: clipId }, this.containers.clipRects);
   this.containers.xAxisGroup = createSVGElement('g', null, [
+    this.containers.clipPath,
     this.xAxis.line.enabled && this.xAxisLine.containers && this.xAxisLine.containers.xAxisLine,
-    this.xAxis.labels.enabled && this.xAxisLabels.containers && this.xAxisLabels.containers.xAxisLabels,
+    this.xAxis.labels.enabled && this.xAxisLabels.containers && this.xAxisLabels.containers.xAxisLabelsGroup,
     this.xAxis.gridLine.enabled && this.xAxisLineGrids.containers && this.xAxisLineGrids.containers.xAxisLineGrids,
   ]);
 }
@@ -533,36 +322,432 @@ function ChartXAxisLineGrids(xAxisLineGrids, config) {
  */
 function ChartXAxisLabels(xAxisLabels, config) {
   this.config = config;
-  this.xAxisLineLabels = xAxisLabels;
 
-  var innerLabelsContentCoords = getCoordsUnderTitle(this.config, {
-    top: this.config.xAxis.spacing.top + this.config.xAxis.labels.spacing.top,
-    left: this.config.xAxis.spacing.left + this.config.xAxis.labels.spacing.left,
-    right: this.config.xAxis.spacing.right + this.config.xAxis.labels.spacing.right,
-    bottom: this.config.xAxis.spacing.bottom + this.config.xAxis.labels.spacing.bottom,
-  });
-
-  var xAxisLineLabelsArray = new Array(this.config.xAxis.ticksAmount + 1) // +1 for displaying label on last line
-    .fill(0)
-    .map(function (_tickVal, index) {
-      var i = index + 1;
-
-      var minMaxX = getMinMaxOfSeriesData(this.config.series, 'x');
-      var labelTextStep = (minMaxX.max - minMaxX.min) / this.config.xAxis.ticksAmount;
-      var labelText = this.xAxisLineLabels.formatter(Math.round(labelTextStep * i), index, this.config);
-      var labelX = innerLabelsContentCoords.x1 + index * (innerLabelsContentCoords.x2 - innerLabelsContentCoords.x1) / this.config.xAxis.ticksAmount;
-
-      var xAxisLineGridsAttr = Object.assign({}, attrObjectToValidObject(this.xAxisLineLabels.attr), {
-        x: labelX + this.xAxisLineLabels.x,
-        y: innerLabelsContentCoords.y2 + this.xAxisLineLabels.y,
-        style: camelCaseObjToDashString(this.xAxisLineLabels.style),
-      });
-
-      return createSVGElement('text', xAxisLineGridsAttr, labelText);
-    }.bind(this));
+  var labels = generateXLabelsProps(this.config);
 
   this.containers = {};
-  this.containers.xAxisLabels = createSVGElement('g', null, xAxisLineLabelsArray);
+  this.containers.xAxisLabels = labels.map(function (labelProps) {
+    return createSVGElement('text', labelProps.attr, labelProps.children);
+  });
+  this.containers.xAxisLabelsGroup = createSVGElement('g', {
+    className: 'chartic_xAsix-labels-group',
+    clipPath: 'url(#' + (this.config.id + '_xAxis-visible-area-id') + ')'
+  }, this.containers.xAxisLabels);
+}
+
+/**
+ * @description Generate attributes and children for labels of an axis.
+ *
+ * @function generateXLabelsProps
+ *
+ * @param config: object
+ * @param selectedArea {{
+ *  x1: number,
+ *  y1: number,
+ *  x2: number,
+ *  y2: number,
+ * }}
+ *
+ * @return {{children, attr}[]}
+ */
+function generateXLabelsProps(config, selectedArea) {
+  return new Array(config.xAxis.ticksAmount + 1) // +1 for displaying label on last line
+    .fill(0)
+    .map(function (_tickVal, index) {
+      return generateXLabelAttrs(config, selectedArea, index);
+    });
+}
+
+/**
+ * @description Generate attributes for a label.
+ *
+ * @function generateXLabelAttrs
+ *
+ * @param config: object
+ * @param selectedArea {{
+ *  x1: number,
+ *  y1: number,
+ *  x2: number,
+ *  y2: number,
+ * }}
+ * @param index: number
+ *
+ * @return {{children, attr}}}
+ */
+function generateXLabelAttrs(config, selectedArea, index) {
+  var xAxisLineLabels = config.xAxis.labels;
+  var areaVisible = getCoordsUnderTitle(config, config.xAxis.spacing);
+  var safeArea = {
+    x1: getNumber((selectedArea || {}).x1, 0),
+    y1: getNumber((selectedArea || {}).y1, 0),
+    x2: getNumber((selectedArea || {}).x2, 1),
+    y2: getNumber((selectedArea || {}).y2, 1),
+  };
+  var innerLabelsVisibleCoords = {
+    x1: safeArea.x1 * areaVisible.innerWidth / (safeArea.x2 - safeArea.x1),
+    x2: (1 - safeArea.x2) * areaVisible.innerWidth / (safeArea.x2 - safeArea.x1),
+  };
+  var innerLabelsContentCoords = getCoordsUnderTitle(config, {
+    top: config.xAxis.spacing.top + config.xAxis.labels.spacing.top - getNumber(innerLabelsVisibleCoords.y1, 0),
+    left: config.xAxis.spacing.left + config.xAxis.labels.spacing.left - getNumber(innerLabelsVisibleCoords.x1, 0),
+    right: config.xAxis.spacing.right + config.xAxis.labels.spacing.right - getNumber(innerLabelsVisibleCoords.x2, 0),
+    bottom: config.xAxis.spacing.bottom + config.xAxis.labels.spacing.bottom - getNumber(innerLabelsVisibleCoords.y2, 0),
+  });
+
+  var minMaxX = getMinMaxOfSeriesData(config.series, 'x');
+  var labelTextStep = (minMaxX.max - minMaxX.min) / config.xAxis.ticksAmount;
+  var labelText = xAxisLineLabels.formatter(Math.round(labelTextStep * (index + 1)), index, config);
+  var labelX = innerLabelsContentCoords.x1 + index * (innerLabelsContentCoords.x2 - innerLabelsContentCoords.x1) / config.xAxis.ticksAmount;
+
+  var xAxisLineGridsAttr = Object.assign({}, attrObjectToValidObject(xAxisLineLabels.attr), {
+    x: 0,
+    y: 0,
+    style: camelCaseObjToDashString(Object.assign({}, { userSelect: 'none' }, xAxisLineLabels.style, {
+      transition: config.chart.animationDuration + 'ms ease-out',
+      transform: 'translate(' + (labelX + xAxisLineLabels.x) + 'px,' + (innerLabelsContentCoords.y2 + xAxisLineLabels.y) + 'px)',
+    })),
+  });
+
+  return {
+    attr: xAxisLineGridsAttr,
+    children: labelText,
+  };
+}
+
+// ================================================================================================================= //
+// ================================================== CHART Y AXIS ================================================= //
+// ================================================================================================================= //
+
+/**
+ * @description Make a chart yAxis.
+ *
+ * @constructor ChartYAxis
+ *
+ * @param yAxis {{
+ *  enabled: boolean,
+ *  ticksAmount: number,
+ *  spacing: {
+ *   top: number,
+ *   left: number,
+ *   right: number,
+ *   bottom: number
+ *  },
+ *  line: {
+ *   enabled: boolean,
+ *   x: number,
+ *   y: number,
+ *   attr: {
+ *    stroke: string,
+ *    strokeWidth: number,
+ *    strokeDasharray: string,
+ *   },
+ *   style: {
+ *
+ *   }
+ *  },
+ *  gridLine: {
+ *   enabled: boolean,
+ *   x: number,
+ *   y: number,
+ *   attr: {
+ *    stroke: string,
+ *    strokeWidth: number,
+ *    strokeDasharray: string,
+ *   },
+ *   style: {
+ *
+ *   },
+ *  },
+ *  labels: {
+ *   enabled: boolean,
+ *   x: number,
+ *   y: number,
+ *   formatter(step: number, index: number, config: object): (number | string | Node),
+ *   spacing: {
+ *    top: number,
+ *    left: number,
+ *    right: number,
+ *    bottom: number
+ *   },
+ *   attr: {
+ *    fill: string,
+ *    textAnchor: 'start' | 'middle' | 'end',
+ *    dominantBaseline: 'hanging' | 'middle' | 'baseline',
+ *   },
+ *   style: {
+ *    fontSize: number,
+ *    fontWeight: number | string,
+ *   },
+ *  }
+ * }}
+ * @param config: object
+ */
+function ChartYAxis(yAxis, config) {
+  this.config = config;
+  this.yAxis = yAxis;
+
+  this.yAxisLine = new ChartYAxisLine(this.yAxis.line, this.config);
+  this.yAxisLabels = new ChartYAxisLabels(this.yAxis.labels, this.config);
+  this.yAxisLineGrids = new ChartYAxisLineGrids(this.yAxis.gridLine, this.config);
+
+  var clipId = this.config.id + '_yAxis-visible-area-id';
+  var areaCoords = getCoordsUnderTitle(config, this.yAxis.spacing);
+  var rectAttr = {
+    x: areaCoords.x1,
+    y: areaCoords.y1,
+    width: areaCoords.innerWidth,
+    height: areaCoords.innerHeight,
+  };
+
+  this.containers = {};
+  this.containers.clipRects = createSVGElement('rect', rectAttr);
+  this.containers.clipPath = createSVGElement('clipPath', { id: clipId }, this.containers.clipRects);
+  this.containers.yAxisGroup = createSVGElement('g', null, [
+    this.containers.clipPath,
+    this.yAxis.line.enabled && this.yAxisLine.containers && this.yAxisLine.containers.yAxisLine,
+    this.yAxis.labels.enabled && this.yAxisLabels.containers && this.yAxisLabels.containers.yAxisLabelsGroup,
+    this.yAxis.gridLine.enabled && this.yAxisLineGrids.containers && this.yAxisLineGrids.containers.yAxisLineGridsGroup,
+  ]);
+}
+
+/**
+ * @description Create yAxis line.
+ *
+ * @constructor ChartYAxisLine
+ *
+ * @param yAxisLine {{
+ *  enabled: boolean,
+ *  x: number,
+ *  y: number,
+ *  attr: {
+ *   stroke: string,
+ *   strokeWidth: number,
+ *   strokeDasharray: string,
+ *  },
+ *  style: {
+ *
+ *  }
+ * }},
+ * @param config: object
+ */
+function ChartYAxisLine(yAxisLine, config) {
+  this.config = config;
+  this.yAxisLine = yAxisLine;
+
+  var innerContentCoords = getCoordsUnderTitle(this.config, this.config.yAxis.spacing);
+  var dOfPath = 'M ' + innerContentCoords.x1 + ',' + innerContentCoords.y1 + ' V ' + innerContentCoords.y2;
+
+  var yAxisLineAttr = Object.assign({}, attrObjectToValidObject(this.yAxisLine.attr), {
+    d: dOfPath,
+    style: camelCaseObjToDashString(this.yAxisLine.style),
+    clipPath: 'url(#' + (this.config.id + '_yAxis-visible-area-id') + ')',
+  });
+
+  this.containers = {};
+  this.containers.yAxisLine = createSVGElement('path', yAxisLineAttr);
+}
+
+/**
+ * @description Create yAxis line grids.
+ *
+ * @constructor ChartYAxisLineGrids
+ *
+ * @param yAxisLineGrids {{
+ *  enabled: boolean,
+ *  x: number,
+ *  y: number,
+ *  attr: {
+ *   stroke: string,
+ *   strokeWidth: number,
+ *   strokeDasharray: string,
+ *  },
+ *  style: {
+ *
+ *  },
+ * }}
+ * @param config: object
+ */
+function ChartYAxisLineGrids(yAxisLineGrids, config) {
+  this.config = config;
+  this.yAxisLineGrids = yAxisLineGrids;
+
+  var yAxisGridLineAttr = generateYAxisGridLineAttr(this.config);
+
+  this.containers = {};
+  this.containers.yAxisLineGrids = yAxisGridLineAttr.map(function (labelAttr) {
+    return createSVGElement('path', labelAttr);
+  }.bind(this));
+  this.containers.yAxisLineGridsGroup = createSVGElement('g', {
+    clipPath: 'url(#' + (this.config.id + '_yAxis-visible-area-id') + ')'
+  }, this.containers.yAxisLineGrids);
+}
+
+/**
+ * @description Generate attributes for yAxis grid lines.
+ *
+ * @function generateYAxisGridLineAttr
+ *
+ * @param config: object
+ * @param selectedArea {{
+ *  x1: number,
+ *  y1: number,
+ *  x2: number,
+ *  y2: number,
+ * }}
+ *
+ * @return {object[]}
+ */
+function generateYAxisGridLineAttr(config, selectedArea) {
+  var safeArea = {
+    x1: getNumber((selectedArea || {}).x1, 0),
+    y1: getNumber((selectedArea || {}).y1, 0),
+    x2: getNumber((selectedArea || {}).x2, 1),
+    y2: getNumber((selectedArea || {}).y2, 1),
+  };
+  var areaSpacing = getCoordsUnderTitle(config, config.yAxis.spacing);
+  var innerContentCoords = Object.assign({}, areaSpacing, {
+    y1: areaSpacing.y1 - safeArea.y1 * areaSpacing.innerHeight / (safeArea.y2 - safeArea.y1),
+    y2: areaSpacing.y2 + (1 - safeArea.y2) * areaSpacing.innerHeight / (safeArea.y2 - safeArea.y1),
+  });
+  return new Array(config.yAxis.ticksAmount)
+    .fill(0)
+    .map(function (_val, index) {
+      return index + 1;
+    })
+    .filter(Boolean)
+    .map(function (index) {
+      var gridLineY = innerContentCoords.y2 - index * ((innerContentCoords.y2 - innerContentCoords.y1) / (config.yAxis.ticksAmount + 1)); // -1 for correct hiding last grid line
+      var dOfPath = 'M ' + innerContentCoords.x1 + ',' + 0 + ' H ' + innerContentCoords.x2;
+      return Object.assign({}, attrObjectToValidObject(config.yAxis.gridLine.attr), {
+        d: dOfPath,
+        style: camelCaseObjToDashString(Object.assign({}, config.yAxis.gridLine.style, {
+          transform: 'translate(0,' + gridLineY + 'px)',
+          transition: config.chart.animationDuration + 'ms ease-out',
+        })),
+      });
+    });
+}
+
+/**
+ * @description Create yAxis labels.
+ *
+ * @constructor ChartYAxisLabels
+ *
+ * @param yAxisLabels {{
+ *  enabled: boolean,
+ *  x: number,
+ *  y: number,
+ *  formatter(step: number, index: number, config: object): (number | string | Node),
+ *  spacing: {
+ *   top: number,
+ *   left: number,
+ *   right: number,
+ *   bottom: number
+ *  },
+ *  attr: {
+ *   fill: string,
+ *   textAnchor: 'start' | 'middle' | 'end',
+ *   dominantBaseline: 'hanging' | 'middle' | 'baseline',
+ *  },
+ *  style: {
+ *   fontSize: number,
+ *   fontWeight: number | string,
+ *  },
+ * }},
+ * @param config: object
+ */
+function ChartYAxisLabels(yAxisLabels, config) {
+  this.config = config;
+
+  var labels = generateXLabelsProps(this.config);
+
+  this.containers = {};
+  this.containers.yAxisLabels = labels.map(function (labelProps) {
+    return createSVGElement('text', labelProps.attr, labelProps.children);
+  }.bind(this));
+  this.containers.yAxisLabelsGroup = createSVGElement('g', {
+    clipPath: 'url(#' + (this.config.id + '_yAxis-visible-area-id') + ')',
+  }, this.containers.yAxisLabels);
+}
+
+/**
+ * @description Generate attributes and children for labels of an axis.
+ *
+ * @function generateYLabelsProps
+ *
+ * @param config: object
+ * @param selectedArea {{
+ *  x1: number,
+ *  y1: number,
+ *  x2: number,
+ *  y2: number,
+ * }}
+ *
+ * @return {{children, attr}[]}
+ */
+function generateYLabelsProps(config, selectedArea) {
+  return new Array(config.yAxis.ticksAmount + 1) // +1 for displaying label on last line
+    .fill(0)
+    .map(function (_tickVal, index) {
+      return generateYLabelAttrs(config, selectedArea, index);
+    });
+}
+
+/**
+ * @description Generate attributes for a label.
+ *
+ * @function generateYLabelAttrs
+ *
+ * @param config: object
+ * @param selectedArea {{
+ *  x1: number,
+ *  y1: number,
+ *  x2: number,
+ *  y2: number,
+ * }}
+ * @param index: number
+ *
+ * @return {{children, attr}}}
+ */
+function generateYLabelAttrs(config, selectedArea, index) {
+  var yAxisLineLabels = config.yAxis.labels;
+  var areaVisible = getCoordsUnderTitle(config, config.yAxis.spacing);
+  var safeArea = {
+    x1: getNumber((selectedArea || {}).x1, 0),
+    y1: getNumber((selectedArea || {}).y1, 0),
+    x2: getNumber((selectedArea || {}).x2, 1),
+    y2: getNumber((selectedArea || {}).y2, 1),
+  };
+  var innerLabelsVisibleCoords = {
+    y1: safeArea.y1 * areaVisible.innerHeight / (safeArea.y2 - safeArea.y1),
+    y2: (1 - safeArea.y2) * areaVisible.innerHeight / (safeArea.y2 - safeArea.y1),
+  };
+  var innerLabelsContentCoords = getCoordsUnderTitle(config, {
+    top: config.yAxis.spacing.top + yAxisLineLabels.spacing.top - getNumber(innerLabelsVisibleCoords.y1, 0),
+    left: config.yAxis.spacing.left + yAxisLineLabels.spacing.left - getNumber(innerLabelsVisibleCoords.x1, 0),
+    right: config.yAxis.spacing.right + yAxisLineLabels.spacing.right - getNumber(innerLabelsVisibleCoords.x2, 0),
+    bottom: config.yAxis.spacing.bottom + yAxisLineLabels.spacing.bottom - getNumber(innerLabelsVisibleCoords.y2, 0),
+  });
+
+  var filteredSeries = filterSeriesDataBySelectArea(config.series, safeArea, 'x');
+  var minMaxY = getMinMaxOfSeriesData(filteredSeries, 'y');
+  var labelTextStep = (minMaxY.max - Math.min(minMaxY.min, 0)) / config.yAxis.ticksAmount;
+  var labelText = yAxisLineLabels.formatter(Math.round(labelTextStep * index), index, config);
+  var labelY = innerLabelsContentCoords.y2 - index * (innerLabelsContentCoords.y2 - innerLabelsContentCoords.y1) / (config.yAxis.ticksAmount + 1); // -1for correct hiding last grid line
+
+  var yAxisLabelsAttr = Object.assign({}, attrObjectToValidObject(yAxisLineLabels.attr), {
+    x: 0,
+    y: 0,
+    style: camelCaseObjToDashString(Object.assign({}, { userSelect: 'none' }, yAxisLineLabels.style, {
+      transition: config.chart.animationDuration + 'ms ease-out',
+      transform: 'translate(' + (innerLabelsContentCoords.x1 + yAxisLineLabels.x) + 'px,' + (labelY + yAxisLineLabels.y) + 'px)',
+    })),
+  });
+
+  return {
+    attr: yAxisLabelsAttr,
+    children: labelText,
+  };
 }
 
 // ================================================================================================================= //
@@ -627,7 +812,7 @@ function ChartSeriesLine(series, config) {
 
   this.config = config;
   this.series = series;
-  this.clipPathId = Math.random().toString().replace('.', '');
+  this.clipPathId = this.config.id + '_series-visible-area-id';
 
   var chartSeriesAttrs = makeSeriesPaths(this.config);
 
@@ -709,9 +894,10 @@ function makeSeriesPaths(config, areaSize) {
         right: seriesWithCoords.spacing.right - (1 - safeArea.x2) * areaVisible.innerWidth / (safeArea.x2 - safeArea.x1),
         bottom: seriesWithCoords.spacing.bottom - (1 - safeArea.y2) * areaVisible.innerHeight / (safeArea.y2 - safeArea.y1),
       };
+
       var filteredSeries = filterSeriesDataBySelectArea(config.series, safeArea, 'x');
-      var minMaxX = getMinMaxOfSeriesData(config.series, 'x');
       var minMaxY = getMinMaxOfSeriesData(filteredSeries, 'y', 0);
+      var minMaxX = getMinMaxOfSeriesData(config.series, 'x');
       var areaCoords = getCoordsUnderTitle(config, areaSpacing);
       var defaultAttr = attrObjectToValidObject(seriesWithCoords.attr);
 
@@ -724,7 +910,7 @@ function makeSeriesPaths(config, areaSize) {
         }, '');
 
       return Object.assign({}, defaultAttr, { d: path });
-    }.bind(this));
+    });
 }
 
 /**
@@ -750,7 +936,7 @@ function filterSeriesDataBySelectArea(series, selectedArea, axis) {
       var minOfSelectedData = Math.floor(data.length * selectedArea[axis + '1']);
       var maxOfSelectedData = Math.round(data.length * selectedArea[axis + '2']);
       return Object.assign({}, seriesItem, {
-        data: data.slice(minOfSelectedData, maxOfSelectedData + 1), // + 1 for correct view from right side
+        data: data.slice(minOfSelectedData, maxOfSelectedData + 1), // +1 for correct view from right side
       });
     });
 }
@@ -1062,6 +1248,5 @@ function ChartLegend(legend, config) {
   this.legend = legend;
 
   this.containers = {};
-  this.containers.legendGroup = createSVGElement('g', null, [
-  ]);
+  this.containers.legendGroup = createSVGElement('g', null, []);
 }

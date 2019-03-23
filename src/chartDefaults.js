@@ -345,7 +345,7 @@ var chartDefaults = {
       },
       style: {
         color: 'grey',
-        fontSize: 14,
+        fontSize: '14px',
         fontWeight: 'normal',
       },
     },
