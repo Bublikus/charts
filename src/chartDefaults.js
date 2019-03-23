@@ -169,7 +169,7 @@
  *    right: number,
  *    bottom: number
  *   },
- *   onSelec({
+ *   onSelect({
  *    x1: number,
  *    y1: number,
  *    x2: number,
@@ -183,6 +183,7 @@
  *  },
  *  series: {
  *   type: 'line',
+ *   name: string,
  *   spacing: {
  *    top: number,
  *    left: number,
@@ -351,6 +352,12 @@ var chartDefaults = {
   },
   legend: {
     enabled: true,
+    spacing: {
+      top: 20,
+      left: 30,
+      right: 30,
+      bottom: 20,
+    }
   },
   selectArea: {
     type: '',
@@ -377,6 +384,7 @@ var chartDefaults = {
     },
   },
   series: [{
+    name: '',
     spacing: {
       top: 15,
       left: 30,

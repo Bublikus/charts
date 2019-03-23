@@ -52,44 +52,50 @@ function getChartSizes(chartOptions) {
  * @function getMinMaxOfSeriesData
  *
  * @param series: [{ data: [{ [prop]: number }] }
- * @param prop: string
+ * @param axis: string
+ * @param min: number
+ * @param max: number
  *
  * @return {{
  *  min: number,
  *  max: number,
  * }}
  */
-function getMinMaxOfSeriesData(series, prop) {
+function getMinMaxOfSeriesData(series, axis, min, max) {
   if (!Array.isArray(series)) {
     return {
       min: 0,
       max: 0,
     };
   }
-  if (!prop) {
+  if (!axis) {
     console.error(new Error('You need to define "prop" in "getMinMaxOfSeriesData" function.'));
   }
-  var min = Math.min.apply(null,
+  var minVal = Math.min.apply(null,
     series.map(function (seriesItem) {
       return Math.min.apply(null,
-        ((seriesItem || {}).data || []).map(function (dataItem) {
-          return (dataItem || {})[prop] || 0;
-        }),
+        ((seriesItem || {}).data || [])
+          .map(function (dataItem) {
+            return (dataItem || {})[axis] || 0;
+          })
+          .concat(isNumber(min) ? min : []),
       );
     }),
   );
-  var max = Math.max.apply(null,
+  var maxVal = Math.max.apply(null,
     series.map(function (seriesItem) {
       return Math.max.apply(null,
-        ((seriesItem || {}).data || []).map(function (dataItem) {
-          return (dataItem || {})[prop] || 0;
-        }),
+        ((seriesItem || {}).data || [])
+          .map(function (dataItem) {
+            return (dataItem || {})[axis] || 0;
+          })
+          .concat(isNumber(max) ? max : []),
       );
     }),
   );
   return {
-    min: min,
-    max: max,
+    min: minVal,
+    max: maxVal,
   };
 }
 

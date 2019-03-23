@@ -57,6 +57,7 @@ function Chartic(config) {
   this.yAxis = new ChartYAxis(this.config.yAxis, this.config);
   this.series = new ChartSeries(this.config.series, this.config);
   this.selectArea = new ChartSelectArea(this.config.selectArea, this.config);
+  this.legend = new ChartLegend(this.config.legend, this.config);
 
   var svgAttr = {
     xmlns: 'http://www.w3.org/2000/svg',
@@ -71,6 +72,7 @@ function Chartic(config) {
     this.config.xAxis.enabled && this.xAxis.containers && this.xAxis.containers.xAxisGroup,
     this.config.yAxis.enabled && this.yAxis.containers && this.yAxis.containers.yAxisGroup,
     !!this.config.selectArea.type && this.selectArea.containers && this.selectArea.containers.selectAreaGroup,
+    this.config.legend.enabled && this.legend.containers && this.legend.containers.legendGroup,
   ]);
 
   this.config.chart.renderTo.appendChild(this.svg);
@@ -707,8 +709,9 @@ function makeSeriesPaths(config, areaSize) {
         right: seriesWithCoords.spacing.right - (1 - safeArea.x2) * areaVisible.innerWidth / (safeArea.x2 - safeArea.x1),
         bottom: seriesWithCoords.spacing.bottom - (1 - safeArea.y2) * areaVisible.innerHeight / (safeArea.y2 - safeArea.y1),
       };
+      var filteredSeries = filterSeriesDataBySelectArea(config.series, safeArea, 'x');
       var minMaxX = getMinMaxOfSeriesData(config.series, 'x');
-      var minMaxY = getMinMaxOfSeriesData(config.series, 'y');
+      var minMaxY = getMinMaxOfSeriesData(filteredSeries, 'y', 0);
       var areaCoords = getCoordsUnderTitle(config, areaSpacing);
       var defaultAttr = attrObjectToValidObject(seriesWithCoords.attr);
 
@@ -722,6 +725,34 @@ function makeSeriesPaths(config, areaSize) {
 
       return Object.assign({}, defaultAttr, { d: path });
     }.bind(this));
+}
+
+/**
+ * @description Filter series data by selected area.
+ *
+ * @function filterSeriesDataBySelectArea
+ *
+ * @param series: object
+ * @param selectedArea {{
+ *  x1: number,
+ *  y1: number,
+ *  x2: number,
+ *  y2: number,
+ * }}
+ * @param axis: string
+ *
+ * @return {object[]}
+ */
+function filterSeriesDataBySelectArea(series, selectedArea, axis) {
+  return series
+    .map(function (seriesItem) {
+      var data = (seriesItem || {}).data || [];
+      var minOfSelectedData = Math.floor(data.length * selectedArea[axis + '1']);
+      var maxOfSelectedData = Math.round(data.length * selectedArea[axis + '2']);
+      return Object.assign({}, seriesItem, {
+        data: data.slice(minOfSelectedData, maxOfSelectedData + 1), // + 1 for correct view from right side
+      });
+    });
 }
 
 // ================================================================================================================= //
@@ -1009,5 +1040,28 @@ function ChartSelectArea(selectArea, config) {
   this.containers.selectAreaGroup = createSVGElement('g', null, [
     this.containers.bgGroup,
     this.containers.borderGroup,
+  ]);
+}
+
+// ================================================================================================================= //
+// ================================================== CHART LEGEND ================================================= //
+// ================================================================================================================= //
+
+/**
+ * @description Create legend.
+ *
+ * @constructor ChartLegend
+ *
+ * @param legend {{
+ *
+ * }}
+ * @param config: object
+ */
+function ChartLegend(legend, config) {
+  this.config = config;
+  this.legend = legend;
+
+  this.containers = {};
+  this.containers.legendGroup = createSVGElement('g', null, [
   ]);
 }

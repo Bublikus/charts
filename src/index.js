@@ -549,14 +549,20 @@ function transformChartDataToSubChartConfig(chartsData) {
       enabled: false,
     },
     legend: {
-      enabled: false,
+      enabled: true,
+      spacing: {
+        top: 20,
+        left: 30,
+        right: 30,
+        bottom: 20,
+      }
     },
     selectArea: {
       type: 'x',
       ranges: {
-        x1: 0,
+        x1: .3,
         y1: 0,
-        x2: 1,
+        x2: .4,
         y2: 1,
       },
       bgAttr: {
