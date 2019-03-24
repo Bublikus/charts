@@ -187,6 +187,9 @@
  *    y2: number,
  *   },
  *  },
+ *  tooltip: {
+ *   enabled: boolean,
+ *  },
  *  series: {
  *   type: 'line',
  *   name: string,
@@ -389,6 +392,9 @@ var chartDefaults = {
     onSelect: function (coords) {
       return coords;
     },
+  },
+  tooltip: {
+    enabled: true,
   },
   series: [{
     type: '',

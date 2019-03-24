@@ -59,6 +59,7 @@ function Chartic(config) {
   this.series = new ChartSeries(this.config.series, this.config);
   this.selectArea = new ChartSelectArea(this.config.selectArea, this.config);
   this.legend = new ChartLegend(this.config.legend, this.config);
+  this.tooltip = new ChartTooltip(this.config.tooltip, this.config);
 
   var svgAttr = {
     xmlns: 'http://www.w3.org/2000/svg',
@@ -74,6 +75,7 @@ function Chartic(config) {
     this.config.yAxis.enabled && this.yAxis.containers && this.yAxis.containers.yAxisGroup,
     !!this.config.selectArea.type && this.selectArea.containers && this.selectArea.containers.selectAreaGroup,
     this.config.legend.enabled && this.legend.containers && this.legend.containers.legendGroup,
+    this.config.tooltip.enabled && this.tooltip.containers && this.tooltip.containers.tooltipGroup,
   ]);
 
   this.config.chart.renderTo.appendChild(this.svg);
@@ -1402,4 +1404,16 @@ function legendTemplate(x, y, text, color, isCheck, callback) {
   ]);
 
   return containers;
+}
+
+// ================================================================================================================= //
+// ================================================== CHART TOOLTIP ================================================ //
+// ================================================================================================================= //
+
+function ChartTooltip(tooltip, config) {
+  this.config = config;
+  this.tooltip = tooltip;
+
+  this.containers = {};
+  this.containers.tooltipGroup = createSVGElement('g', null, []);
 }

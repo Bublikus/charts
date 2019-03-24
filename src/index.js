@@ -243,6 +243,9 @@ function start(chartsData) {
  *    y2: number,
  *   },
  *  },
+ *  tooltip: {
+ *   enabled: boolean,
+ *  },
  *  series: {
  *   type: 'line',
  *   spacing: {
@@ -531,6 +534,9 @@ function transformChartDataToMainChartConfig(chartsData) {
  *    y2: number,
  *   },
  *  },
+ *  tooltip: {
+ *   enabled: boolean,
+ *  },
  *  series: {
  *   type: 'line',
  *   spacing: {
@@ -578,6 +584,9 @@ function transformChartDataToSubChartConfig(chartsData) {
         right: 30,
         bottom: 20,
       }
+    },
+    tooltip: {
+      enabled: false,
     },
     selectArea: {
       type: 'xy',
