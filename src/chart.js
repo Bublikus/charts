@@ -1256,11 +1256,8 @@ function ChartLegend(legend, config) {
   var legendItems = generateLegends(this.config, this.legend);
 
   eventAggregator.subscribe('legendClick', function (storeLegend) {
-    Object.keys(storeLegend).map(function (legendName, index) {
-      var checkedIndexes = this.config.series.reduce(function (acc, item, i) {
-        return acc.concat(storeLegend[legendName] ? i : []);
-      }, []);
-      this.containers.unCheckCircle[index].setAttribute('r', checkedIndexes.indexOf(index) !== -1 ? 10 : 0);
+    this.config.series.forEach(function (item, i) {
+      this.containers.unCheckCircle[i].setAttribute('r', storeLegend[item.name] ? 10 : 0);
     }.bind(this));
   }.bind(this));
 
@@ -1280,7 +1277,7 @@ function ChartLegend(legend, config) {
  * @function generateLegends
  *
  * @param config: object
- * @param legend: {
+ * @param legend {{
  *  enabled: boolean,
  *  spacing: {
  *   top: number,
@@ -1288,7 +1285,7 @@ function ChartLegend(legend, config) {
  *   right: number,
  *   bottom: number
  *  },
- * }
+ * }}
  *
  * @return {object[]}
  */
@@ -1405,4 +1402,4 @@ function legendTemplate(x, y, text, color, isCheck, callback) {
   ]);
 
   return containers;
-};
+}
